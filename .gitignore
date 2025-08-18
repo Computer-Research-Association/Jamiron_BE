@@ -1,0 +1,65 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+.venv/
+venv/
+env/
+ENV/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Logs and debug
+*.log
+logs/
+debug.log
+
+# IDE / Editor
+.vscode/
+.idea/
+*.iml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment & config
+.env
+*.local
+*.secret.json
+
+# Cache
+.cache/
+*.pyc
+*.pyo
+*.pyd
+
+# Data (keep raw data out of git, unless really needed)
+data/
+storage/
+*.db
+
+# Models
+models/
+*.h5
+*.pt
+*.pth
+*.ckpt
+*.onnx
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# PyInstaller
+*.spec
+
+# Testing
+.coverage
+.tox/
+pytest_cache/
