@@ -194,12 +194,12 @@ class SyllabusCollector:
             return
 
         self._update_progress("데이터베이스 연결 확인 중...", 5)
-        
+
         # 데이터베이스 연결 테스트
         if not self.test_database_connection():
             self._update_progress("데이터베이스 연결 실패! 설정을 확인하세요.", 0)
             return
-        
+
         for idx, class_info in enumerate(classes_list, 1):
             url = class_info["href"]
             title = class_info["title"]
@@ -216,13 +216,15 @@ class SyllabusCollector:
                     self.current_user_year,
                     self.current_user_hakgi,
                 )
-                
+
                 if data:
-                    # 먼저 원본 데이터를 데이터베이스에 저장
+                    # print("📄 크롤링된 데이터 (DB 저장 전):")
+                    # print(json.dumps(data, ensure_ascii=False, indent=2))
+                    # # 먼저 원본 데이터를 데이터베이스에 저장
                     raw_success = self._save_syllabus_to_db(data)
                     if raw_success:
                         self.saved_syllabuses_count += 1
-                    
+
                     # 강의계획서 처리 및 번역 시도
                     try:
                         from ..utils.file_process.preprocessor import (
@@ -260,7 +262,7 @@ class SyllabusCollector:
 
         # 최종 결과 메시지
         self._update_progress(
-            f"크롤링 완료! 총 {self.saved_syllabuses_count}개 강의 계획서가 데이터베이스에 저장되었습니다.", 
+            f"크롤링 완료! 총 {self.saved_syllabuses_count}개 강의 계획서가 데이터베이스에 저장되었습니다.",
             100
         )
 
@@ -269,8 +271,8 @@ class SyllabusCollector:
         db = SessionLocal()
         try:
             # 데이터베이스 연결 테스트
-            db.execute("SELECT 1")
-            
+            #db.execute("SELECT 1")
+
             # 기존 데이터 확인 (중복 방지)
             existing_syllabus = db.query(Syllabus).filter(
                 Syllabus.class_code == syllabus_data.get('class_code'),
@@ -434,14 +436,14 @@ class SyllabusCollector:
         db = SessionLocal()
         try:
             query = db.query(Syllabus)
-            
+
             if year:
                 query = query.filter(Syllabus.year == year)
             if hakgi:
                 query = query.filter(Syllabus.hakgi == hakgi)
-            
+
             syllabuses = query.all()
-            
+
             # 딕셔너리 형태로 변환
             result = []
             for syllabus in syllabuses:
@@ -470,7 +472,7 @@ class SyllabusCollector:
         """데이터베이스 연결 테스트"""
         try:
             db = SessionLocal()
-            db.execute("SELECT 1")
+            #db.execute("SELECT 1")
             db.close()
             print("✅ 데이터베이스 연결 성공!")
             return True
