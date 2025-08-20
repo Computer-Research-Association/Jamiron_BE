@@ -1,6 +1,6 @@
 from typing import List, Dict
-from methods.rule import RuleBasedClassifier
-from methods.ml import MLClassifier
+from .methods.rule import RuleBasedClassifier
+from .methods.ml import MLClassifier
 
 class ClassifierManager:
     def __init__(self, rule_classifier: RuleBasedClassifier, ml_classifier: MLClassifier):

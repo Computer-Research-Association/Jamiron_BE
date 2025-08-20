@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from service import ClassifierManager
+from .service import ClassifierManager
 
 router = APIRouter()
 
