@@ -8,8 +8,10 @@ router = APIRouter()
 class LoginRequest(BaseModel):
     user_id: str
     password: str
+    year: int
+    semester: str
 
-@router.post("/api/login")
+@router.post("/")
 async def login(credentials: LoginRequest):
     # 요청마다 SyllabusCollector 인스턴스를 새로 생성
     collector = SyllabusCollector()
@@ -19,12 +21,12 @@ async def login(credentials: LoginRequest):
         success = collector.login(credentials.user_id, credentials.password)
         
         if success:
-            return {"message": "로그인 성공!"}
+            return {"message": 200}
         else:
-            return {"message": "로그인 실패. 아이디 또는 비밀번호를 확인하세요."}
+            return {"message": 401}
             
     except Exception as e:
-        return {"error": f"예상치 못한 오류가 발생했습니다: {e}"}
+        return {"error": 404}
         
     finally:
         # 작업 완료 후 드라이버를 반드시 종료

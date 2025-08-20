@@ -37,7 +37,8 @@ class SyllabusCollector:
             self.driver = webdriver.Chrome(service=service, options=options)
         except Exception as e:
             raise Exception(f"WebDriver 초기화 실패: {e}")
-
+        
+    #def syllabus_collector(self, year: int, semester: str):
     def login(self, user_id: str, password: str) -> bool:
         """
         히즈넷 사이트에 로그인 수행.
