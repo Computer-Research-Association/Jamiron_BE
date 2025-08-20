@@ -1,6 +1,6 @@
 from typing import List, Dict
-from .methods.rule import RuleBasedClassifier
-from .methods.ml import MLClassifier
+from methods.rule import RuleBasedClassifier
+from methods.ml import MLClassifier
 
 class ClassifierManager:
     def __init__(self, rule_classifier: RuleBasedClassifier, ml_classifier: MLClassifier):
@@ -29,3 +29,5 @@ class ClassifierManager:
                 file_data['label'] = self.ml_classifier.classify(file_data)
 
         return file_data_list
+    
+    

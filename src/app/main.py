@@ -1,6 +1,6 @@
 # src/app/main.py
 from fastapi import FastAPI
-from .classifier.router import router as classifier_router
+from classifier.router import router as classifier_router
 
 app = FastAPI()
 
