@@ -3,9 +3,10 @@ from .login.router import router as login_router
 from .classifier.router import router as classifier_router
 from .config.database import engine, test_connection
 from .model import Base  # models에서 Base import
+import logging
 
 app = FastAPI()
-
+logging.basicConfig(level=logging.INFO)
 # 앱 시작시 연결 테스트
 @app.on_event("startup")
 async def startup_event():

@@ -32,7 +32,7 @@ class SyllabusCollector:
     히즈넷에서 강의 계획서 정보를 수집하고 데이터베이스에 저장하는 클래스.
     """
 
-    def __init__(self, progress_callback=None):
+    def __init__(self, user_id: str = None, progress_callback=None):
         """
         SyllabusCollector 인스턴스를 초기화함.
 
@@ -46,7 +46,9 @@ class SyllabusCollector:
         self.progress_callback = progress_callback
         self.current_user_year = None
         self.current_user_hakgi = None
+        self.current_user_id = user_id
         self.saved_syllabuses_count = 0  # JSON 리스트 대신 저장 카운트 사용
+        self.collected_class_codes = []
 
     def _update_progress(self, message: str, percent: int):
         """진행 상황을 콜백 함수를 통해 업데이트함."""
@@ -181,6 +183,7 @@ class SyllabusCollector:
             return False
 
     def download_planners(self):
+        self.collected_syllabuses = []
         """강의 계획서를 다운로드하고 데이터베이스에 저장"""
         if not self.driver:
             self._update_progress("WebDriver가 초기화되지 않았습니다.", 0)
@@ -194,18 +197,20 @@ class SyllabusCollector:
             return
 
         self._update_progress("데이터베이스 연결 확인 중...", 5)
-        
+
         # 데이터베이스 연결 테스트
         if not self.test_database_connection():
             self._update_progress("데이터베이스 연결 실패! 설정을 확인하세요.", 0)
             return
-        
+
+        # 강의 코드 리스트 초기화 (혹시 모를 재호출 대비)
+        self.collected_class_codes = []  # ✨ 이 줄을 추가하여 호출 시마다 초기화합니다. ✨
+
         for idx, class_info in enumerate(classes_list, 1):
             url = class_info["href"]
             title = class_info["title"]
 
             print(f"처리 중인 URL: {url}")
-            # old/crawler.py 방식: URL의 마지막 16자리를 사용해서 파라미터 추출
             temp = url[-16:]
             syllabus_detail_url = f"{self.base_url}SMART/lp_view_4student_1.php?kang_yy={temp[:4]}&kang_hakgi={temp[5]}&kang_code={temp[-8:]}&kang_ban={temp[6:8]}"
 
@@ -216,14 +221,20 @@ class SyllabusCollector:
                     self.current_user_year,
                     self.current_user_hakgi,
                 )
-                
+
                 if data:
-                    # 먼저 원본 데이터를 데이터베이스에 저장
                     raw_success = self._save_syllabus_to_db(data)
                     if raw_success:
                         self.saved_syllabuses_count += 1
-                    
-                    # 강의계획서 처리 및 번역 시도
+
+                        syllabus_info = {
+                            "class_code": data.get('class_code'),
+                            "class_name": data.get('class_name'),
+                            "professor_name": data.get('professor_name')
+                        }
+                        if syllabus_info not in self.collected_syllabuses:
+                            self.collected_syllabuses.append(syllabus_info)
+
                     try:
                         from ..utils.file_process.preprocessor import (
                             process_and_save_syllabus,
@@ -234,22 +245,27 @@ class SyllabusCollector:
                         )
 
                         if processed_data:
-                            # 처리된 데이터로 업데이트
                             processed_success = self._save_syllabus_to_db(processed_data)
-                            if processed_success and not raw_success:
-                                self.saved_syllabuses_count += 1
+                            # 만약 전처리된 데이터 저장이 성공했고, raw 데이터 저장 시 코드를 추가하지 않았다면 여기에서 추가할 수 있습니다.
+                            # 하지만 일반적으로 raw 데이터 저장 시 한 번만 추가하는 것이 목적에 부합합니다.
+                            # if processed_success and not raw_success: # 이 조건은 raw_success가 False일 때만 추가하므로, 이미 추가된 코드를 다시 추가하지 않을 때 유용합니다.
+                            #     class_code = processed_data.get('class_code')
+                            #     if class_code and class_code not in self.collected_class_codes:
+                            #         self.collected_class_codes.append(class_code)
+                            if processed_success and raw_success is None:  # raw_success가 실패했을 때 processed_data가 저장되었다면
+                                class_code = processed_data.get('class_code')
+                                if class_code and class_code not in self.collected_class_codes:
+                                    self.collected_class_codes.append(class_code)
+
                     except Exception as preprocessor_error:
                         print(f"전처리 과정에서 오류 발생 (원본은 저장됨): {preprocessor_error}")
-                        # 전처리 실패해도 원본 데이터는 이미 저장됨
 
-                # 프로그래스바 업데이트 (5~95%)
                 progress_percent = 5 + int((idx / total_classes) * 90)
                 self._update_progress(
                     f"[{idx}/{total_classes}] {title} 처리 완료",
                     progress_percent,
                 )
             except Exception as e:
-                # 오류가 발생해도 프로그래스바는 계속 진행
                 progress_percent = 5 + int((idx / total_classes) * 90)
                 self._update_progress(
                     f"[{idx}/{total_classes}] {title} 처리 중 오류 발생: {str(e)[:50]}...",
@@ -258,19 +274,22 @@ class SyllabusCollector:
                 print(f"ERROR: Exception during processing {title}: {e}")
                 continue
 
-        # 최종 결과 메시지
         self._update_progress(
-            f"크롤링 완료! 총 {self.saved_syllabuses_count}개 강의 계획서가 데이터베이스에 저장되었습니다.", 
+            f"크롤링 완료! 총 {self.saved_syllabuses_count}개 강의 계획서가 데이터베이스에 저장되었습니다.",
             100
         )
+
+    def get_collected_syllabuses(self) -> list:
+        """수집된 강의 코드, 강의명, 교수명 리스트를 반환"""
+        return self.collected_syllabuses
 
     def _save_syllabus_to_db(self, syllabus_data: dict) -> bool:
         """강의 계획서 데이터를 데이터베이스에 저장"""
         db = SessionLocal()
         try:
             # 데이터베이스 연결 테스트
-            db.execute("SELECT 1")
-            
+            #db.execute("SELECT 1")
+
             # 기존 데이터 확인 (중복 방지)
             existing_syllabus = db.query(Syllabus).filter(
                 Syllabus.class_code == syllabus_data.get('class_code'),
@@ -434,14 +453,14 @@ class SyllabusCollector:
         db = SessionLocal()
         try:
             query = db.query(Syllabus)
-            
+
             if year:
                 query = query.filter(Syllabus.year == year)
             if hakgi:
                 query = query.filter(Syllabus.hakgi == hakgi)
-            
+
             syllabuses = query.all()
-            
+
             # 딕셔너리 형태로 변환
             result = []
             for syllabus in syllabuses:
@@ -470,7 +489,7 @@ class SyllabusCollector:
         """데이터베이스 연결 테스트"""
         try:
             db = SessionLocal()
-            db.execute("SELECT 1")
+            #db.execute("SELECT 1")
             db.close()
             print("✅ 데이터베이스 연결 성공!")
             return True

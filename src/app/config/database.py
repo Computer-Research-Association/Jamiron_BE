@@ -1,13 +1,19 @@
 # src/app/config/database.py
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
+from dotenv import load_dotenv
 import logging
+import os
 
 # 로깅 설정으로 SQLAlchemy 연결 상태 확인
 logging.basicConfig()
 logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
-DATABASE_URL = "mysql+mysqlconnector://root:1234@localhost:3306/jamiron"
+load_dotenv()
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+engine = create_engine(DATABASE_URL)
+SessionLocal = sessionmaker(bind=engine)
 
 # 연결 옵션 추가
 engine = create_engine(
