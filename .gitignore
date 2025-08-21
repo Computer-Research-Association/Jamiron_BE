@@ -63,3 +63,6 @@ models/
 .coverage
 .tox/
 pytest_cache/
+
+# Database
+
