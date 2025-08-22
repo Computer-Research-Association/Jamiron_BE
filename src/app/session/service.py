@@ -19,3 +19,10 @@ async def get_session(redis, token: str) -> dict:
 
 async def delete_session(redis, token: str):
     await redis.delete(f"sess:{token}")
+
+    # 공통 의존성처럼 쓸 헬퍼
+async def require_session(x_session_token: str | None = Header(default=None, convert_underscores=False)) -> int:
+    if not x_session_token:
+        raise HTTPException(401, "Missing X-Session-Token")
+    sess = await get_session(redis, x_session_token)
+    return sess["user_id"]
