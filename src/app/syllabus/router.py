@@ -1,15 +1,15 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
-from ..login.service import SyllabusCollector
+from ..syllabus.service import SyllabusCollector
 
 router = APIRouter()
 
-# 요청 데이터의 유효성을 검사할 모델
+''' 요청 데이터의 유효성을 검사할 모델'''
 class LoginRequest(BaseModel):
     user_id: str
     password: str
 
-@router.post("/api/login")
+@router.post("/syllabus")
 async def login(credentials: LoginRequest):
     # 요청마다 SyllabusCollector 인스턴스를 새로 생성
     collector = SyllabusCollector()

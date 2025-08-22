@@ -1,10 +1,12 @@
 from fastapi import FastAPI
-from .login.router import router as login_router
-from .classifier.router import router as classifier_router
+from src.app.syllabus.router import router as syllabus_collector
+from src.app.classifier.router import router as classifier_router
+from src.app.auth.router import router as auth_router
 
 app = FastAPI()
-app.include_router(login_router, prefix="/api/login", tags=["Authentication"])
-app.include_router(classifier_router, prefix="/api/classifier")
+app.include_router(auth_router)
+app.include_router(classifier_router)
+app.include_router(syllabus_collector)
 @app.get("/")
 def root():
     return {"message": "Jamiron classifier server running 🚀"}

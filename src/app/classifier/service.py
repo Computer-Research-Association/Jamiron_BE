@@ -1,6 +1,6 @@
 from typing import List, Dict
-from .methods.rule import RuleBasedClassifier
-from .methods.ml import MLClassifier
+from .models.rule import RuleBasedClassifier
+from .models.ml import MLClassifier
 
 # ClassifierManager 클래스는 기존과 동일합니다.
 class ClassifierManager:
