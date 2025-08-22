@@ -16,7 +16,8 @@ router = APIRouter()
 # syllabuses 딕셔너리 안에 실제 강의 정보가 들어갈 것으로 예상됩니다.
 class UserDate(BaseModel):
     user_id: str
-    syllabuses: dict  # 학기별 강의 목록을 담는 딕셔너리
+    class_code: str
+    professor_name: str# 학기별 강의 목록을 담는 딕셔너리
     year: str
     semester: str
 

@@ -30,7 +30,8 @@ class UserSyllabusData(Base):
     user_id = Column(String(50), nullable=False)
     year = Column(String(10), nullable=False)
     semester = Column(String(10), nullable=False)
-    syllabuses = Column(JSON, nullable=False)  # JSON 타입을 사용하는 것이 더 명확
+    class_code = Column(String(10), nullable=False)
+    professor_name = Column(String(10), nullable=False)
 
     __table_args__ = (
         UniqueConstraint('user_id', 'year', 'semester', name='uq_user_syllabuses'),
