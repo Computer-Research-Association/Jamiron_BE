@@ -9,7 +9,7 @@ class LoginRequest(BaseModel):
     user_id: str
     password: str
 
-@router.post("api/syllabus")
+@router.post("/api/syllabus")
 async def login(credentials: LoginRequest):
     # 요청마다 SyllabusCollector 인스턴스를 새로 생성
     collector = SyllabusCollector()
