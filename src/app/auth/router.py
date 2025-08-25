@@ -4,6 +4,8 @@ from pydantic import BaseModel, SecretStr
 from src.app.session.redis_client import redis
 from src.app.session.service import new_token, create_session, get_session, delete_session
 from src.app.syllabus.service import SyllabusCollector
+from fastapi import APIRouter, Depends
+from src.app.auth.router import require_session
 
 
 router = APIRouter()
@@ -38,3 +40,9 @@ async def logout(x_session_token: str | None = Header(default=None, convert_unde
         await delete_session(redis, x_session_token)
     return {"ok": True}
 
+router = APIRouter()
+
+@router.get("/me")
+async def me(user_id: int = Depends(require_session)):
+    # 여기서 DB/캐시로 과목·권한 조회 (필요시 5~10분 캐시)
+    return {"user_id": user_id, "courses": []}
