@@ -3,9 +3,13 @@ import uuid, time
 from typing import Dict
 from fastapi import Header, HTTPException
 from redis.asyncio import Redis
+from src.app.config.settings import settings
 
-redis = Redis(host="localhost", port=6379, decode_responses=True)
-SESSION_TTL = 7 * 24 * 3600
+redis = Redis(
+    host=settings.redis_host,
+    port=settings.redis_port,
+    decode_responses=True
+)
 
 def now() -> int: return int(time.time())
 
