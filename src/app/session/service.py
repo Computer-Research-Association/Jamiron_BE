@@ -2,7 +2,8 @@
 import uuid, time
 from fastapi import HTTPException
 
-SESSION_TTL = 7 * 24 * 3600         # 7일 (idle)
+# 세션 유효기간
+SESSION_TTL = 7 * 24 * 3600
 
 def now() -> int: return int(time.time())
 
@@ -20,7 +21,6 @@ async def get_session(redis, token: str) -> dict:
 async def delete_session(redis, token: str):
     await redis.delete(f"sess:{token}")
 
-    # 공통 의존성처럼 쓸 헬퍼
 async def require_session(x_session_token: str | None = Header(default=None, convert_underscores=False)) -> int:
     if not x_session_token:
         raise HTTPException(401, "Missing X-Session-Token")
