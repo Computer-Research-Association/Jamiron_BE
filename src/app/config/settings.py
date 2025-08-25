@@ -4,8 +4,8 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     redis_host: str
     redis_port: int
-    session_ttl: int = 7 * 24 * 3600
-    session_prefix: str = "sess"
+    session_ttl: int
+    session_prefix: str
 
     class Config:
         env_file = ".env"
