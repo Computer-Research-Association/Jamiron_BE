@@ -1,9 +1,8 @@
 from fastapi import HTTPException, Response
 from src.app.session.service import new_token, create_session
 from src.app.syllabus.service import SyllabusCollector
-from src.app.auth.dto import LoginIn, LoginOut
 
-def login(body: LoginIn, res: Response):
+def login(body, res):
     collector = SyllabusCollector()
     if not collector.login(body.user_id, body.password.get_secret_value()):
         # 로그인 시도 실패하면 실패 반환
@@ -13,6 +12,6 @@ def login(body: LoginIn, res: Response):
     # 토큰 발급. 고유한 id
     token = new_token()
     # redis에 user id랑 고유한 토큰 id 전달
-    await create_session(token, user_id=body.user_id)
+    create_session(token, user_id=body.user_id)
     # 프로그램 환경이라 쿠키 대신 헤더/바디로 토큰을 전달
-    return LoginOut(session_token=token)
+    return token
