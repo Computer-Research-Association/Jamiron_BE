@@ -1,6 +1,7 @@
 from fastapi import HTTPException, Response
 from src.app.session.service import new_token, create_session
 from src.app.syllabus.service import SyllabusCollector
+from src.app.auth.dto import LoginIn, LoginOut
 
 def login(body: LoginIn, res: Response):
     collector = SyllabusCollector()
