@@ -76,28 +76,28 @@ def create_or_update_user_syllabuses(db: Session, user_data: UserDate) -> List[D
 
     return results
 
-def get_user_syllabuses(db: Session, user_id: str) -> List[Dict[str, Any]]:
+def get_user_syllabuses(db: Session, user_id: str, year: str, semester: str) -> List[Dict[str, Any]]:
     """
     user_syllabus_data에서 사용자의 강의 정보를 찾고,
-    해당 정보를 syllabuses 테이블의 강의 계획서와 매칭합니다.
+    학년(year)와 학기(semester) 기준으로 syllabuses 테이블의 강의 계획서와 매칭합니다.
     """
-    # 1. user_syllabus_data 테이블에서 사용자의 강의 데이터 조회
+    # 특정 학년/학기만 조회
     user_courses = db.query(UserSyllabusData).filter(
-        UserSyllabusData.user_id == user_id
+        UserSyllabusData.user_id == user_id,
+        UserSyllabusData.year == year,
+        UserSyllabusData.semester == semester
     ).all()
 
     if not user_courses:
-        # 사용자가 수강한 강의가 없으면 빈 리스트 반환
         return []
 
     results = []
 
-    # 2. 각 강의에 대해 syllabuses 테이블에서 매칭되는 강의 계획서 찾기
     for course in user_courses:
         matching_syllabus = db.query(Syllabus).filter(
             Syllabus.class_code == course.class_code,
             Syllabus.year == course.year,
-            Syllabus.semester == course.semester
+            Syllabus.semester == course.semester  # DB 컬럼이 semester로 되어 있어야 함
         ).first()
 
         if matching_syllabus:
@@ -108,7 +108,8 @@ def get_user_syllabuses(db: Session, user_id: str) -> List[Dict[str, Any]]:
                 "semester": course.semester,
                 "professor_name": course.professor_name,
                 "syllabus_description": matching_syllabus.description,
-                "syllabus_objectives": matching_syllabus.objectives
+                "syllabus_objectives": matching_syllabus.objectives,
+                "syllabus_schedule": matching_syllabus.schedule
             })
 
     return results

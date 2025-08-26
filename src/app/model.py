@@ -31,7 +31,7 @@ class UserSyllabusData(Base):
     year = Column(String(10), nullable=False)
     semester = Column(String(10), nullable=False)
     class_code = Column(String(10), nullable=False)
-    professor_name = Column(String(10), nullable=False)
+    professor_name = Column(String(30), nullable=False)
 
     __table_args__ = (
         UniqueConstraint('user_id', 'year', 'semester', 'class_code', name='uq_user_year_semester_class'),

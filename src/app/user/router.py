@@ -51,16 +51,22 @@ async def create_or_update_user_syllabus_data(
 
 
 # 특정 사용자의 강의 계획서 조회
-@router.get("/users/{user_id}/syllabuses", response_model=List[Dict[str, Any]])
-def read_user_syllabuses(user_id: str, db: Session = Depends(get_db)):
+@router.get("/users", response_model=List[Dict[str, Any]])
+def read_user_syllabuses(
+        user_id: str,
+        year: str,
+        semester: str,
+        db: Session = Depends(get_db)
+):
     """
     특정 사용자의 수강 과목과 매칭되는 강의 계획서 데이터를 조회합니다.
     """
-    syllabuses = get_user_syllabuses(db, user_id)
+    syllabuses = get_user_syllabuses(db, user_id, year, semester)
 
     if not syllabuses:
         raise HTTPException(
-            status_code=404, detail=f"User ID '{user_id}'에 대한 강의 계획서를 찾을 수 없습니다."
+            status_code=404,
+            detail=f"User ID '{user_id}', Year '{year}', Semester '{semester}'에 대한 강의 계획서를 찾을 수 없습니다."
         )
 
     return syllabuses

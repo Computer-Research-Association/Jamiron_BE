@@ -146,7 +146,7 @@ class SyllabusCollector:
 
             my_semester_select = Select(
                 WebDriverWait(self.driver, 10).until(
-                    EC.presence_of_element_located((By.CSS_SELECTOR, "#kang_semester"))
+                    EC.presence_of_element_located((By.CSS_SELECTOR, "#kang_hakgi"))
                 )
             )
             my_semester_select.select_by_value(semester)
@@ -212,7 +212,7 @@ class SyllabusCollector:
 
             print(f"처리 중인 URL: {url}")
             temp = url[-16:]
-            syllabus_detail_url = f"{self.base_url}SMART/lp_view_4student_1.php?kang_yy={temp[:4]}&kang_semester={temp[5]}&kang_code={temp[-8:]}&kang_ban={temp[6:8]}"
+            syllabus_detail_url = f"{self.base_url}SMART/lp_view_4student_1.php?kang_yy={temp[:4]}&kang_hakgi={temp[5]}&kang_code={temp[-8:]}&kang_ban={temp[6:8]}"
 
             try:
                 data = self._parse_syllabus_page(

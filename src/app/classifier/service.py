@@ -2,6 +2,10 @@ from typing import List, Dict
 from .methods.rule import RuleBasedClassifier
 from .methods.ml import MLClassifier
 
+from ..user.router import read_user_syllabuses  # FastAPI router에서 가져오기
+from sqlalchemy.orm import Session
+from ..config.database import get_db
+
 # ClassifierManager 클래스는 기존과 동일합니다.
 class ClassifierManager:
     def __init__(self, rule_classifier: RuleBasedClassifier, ml_classifier: MLClassifier):
@@ -21,10 +25,14 @@ class ClassifierManager:
 
         return file_data_list
 
-syllabus_data_list = [
-]
-
-def classify_with_ml(file_data_list: List[Dict[str, str]]) -> List[Dict[str, str]]:
+def classify_with_ml(user_id: str, year: str, semester: str, db: Session) -> List[Dict[str, str]]:
+    # 1. FastAPI router 함수에서 syllabuses 가져오기
+    syllabus_data_list: List[Dict[str, str]] = read_user_syllabuses(
+        user_id=user_id,
+        year=year,
+        semester=semester,
+        db=db
+    )
     rule_classifier = RuleBasedClassifier(syllabus_data_list)
     ml_classifier = MLClassifier(syllabus_data_list)
 
