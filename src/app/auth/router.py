@@ -7,7 +7,7 @@ from src.app.user.dto import User
 
 router = APIRouter()
 
-@router.post("/login", response_model=LoginOut)
+@router.post("/login")
 async def login(req:User):
     token = await login(req)
     return token
