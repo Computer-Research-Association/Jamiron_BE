@@ -14,7 +14,7 @@ import threading
 import math
 import json
 from sqlalchemy.orm import Session
-from ..model import Syllabus  # models.py에서 import
+from src.app.model import Syllabus  # models.py에서 import
 from ..config.database import SessionLocal  # 데이터베이스 세션
 
 
@@ -26,13 +26,12 @@ def clean_text(text: str) -> str:
     text = re.sub(r"\s+", " ", text).strip()
     return text
 
-
 class SyllabusCollector:
     """
     히즈넷에서 강의 계획서 정보를 수집하고 데이터베이스에 저장하는 클래스.
     """
 
-    def __init__(self, user_id: str = None, progress_callback=None):
+    def __init__(self, progress_callback=None):
         """
         SyllabusCollector 인스턴스를 초기화함.
 
@@ -46,7 +45,6 @@ class SyllabusCollector:
         self.progress_callback = progress_callback
         self.current_user_year = None
         self.current_user_semester = None
-        self.current_user_id = user_id
         self.saved_syllabuses_count = 0  # JSON 리스트 대신 저장 카운트 사용
         self.collected_class_codes = []
 
@@ -501,3 +499,10 @@ class SyllabusCollector:
         if self.driver:
             self.driver.quit()
             self.driver = None
+
+
+
+
+syllabusCollector = SyllabusCollector()
+def get_syllabus_collector():
+    return syllabusCollector

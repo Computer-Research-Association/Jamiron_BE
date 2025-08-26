@@ -1,20 +1,30 @@
-# src/app/classifier/router.py
-
 from fastapi import APIRouter
-from typing import List, Dict
+from typing import List
+from pydantic import BaseModel
 
-# service.py에서 classify_with_ml 함수를 직접 임포트합니다.
-from .service import classify_with_ml
+from src.app.classifier.service import classify_with_ml  # service 함수 임포트
+from src.app.config.database import get_db
+from sqlalchemy.orm import Session
+from fastapi import Depends
+
 
 router = APIRouter()
 
+class FileData(BaseModel):
+    file_name: str
+    all_content: str
+    first_content: str
+    title: str
+    author: str
 
 @router.post("/classify")
-async def classify_files(files: List[Dict]):
-    """
-    파일 분류를 위한 API 엔드포인트입니다.
-    service 레이어의 classify_with_ml 함수를 직접 호출하여 분류를 수행합니다.
-    """
-    result = classify_with_ml(files)
+async def classify_files(
+    files: List[FileData],
+    db: Session = Depends(get_db)
+):
+
+    file_dicts = [file.dict() for file in files]
+
+    result = classify_with_ml(file_dicts, db=db)
 
     return {"classified_files": result}

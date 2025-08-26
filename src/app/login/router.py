@@ -3,8 +3,10 @@ import logging
 from fastapi import APIRouter, Depends, logger
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from ..config.database import get_db # get_db 함수 임포트
-from ..login.service import SyllabusCollector
+from src.app.config.database import get_db # get_db 함수 임포트
+from src.app.login.service import get_syllabus_collector, SyllabusCollector
+
+#from src.app.login.service import SyllabusCollector
 
 router = APIRouter()
 
@@ -18,16 +20,18 @@ class LoginAndScrapeRequest(BaseModel):
 @router.post("/")
 async def login_and_scrape(
     credentials: LoginAndScrapeRequest,
-    db: Session = Depends(get_db)  # 데이터베이스 세션을 주입
+    db: Session = Depends(get_db), # 데이터베이스 세션을 주입
+    collector: SyllabusCollector = Depends(get_syllabus_collector)
 ):
     """
     사용자 로그인, 강의 계획서 페이지 이동,
     강의 계획서 데이터 크롤링 및 데이터베이스 저장을 처리합니다.
     """
-    collector = SyllabusCollector()
     # logger = logging.getLogger(__name__)
     # logger.info(f"📥 로그인 요청: {credentials.user_id}, {credentials.year}-{credentials.semester}")
     # logger.info("🔍 강의 계획서 크롤링 시작...")
+
+
 
     try:
         # 1단계: 히즈넷 로그인
