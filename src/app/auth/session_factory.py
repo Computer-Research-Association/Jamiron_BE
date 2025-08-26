@@ -16,7 +16,7 @@ SESSION_TTL = settings.session_ttl
 
 def now() -> int: return int(time.time())
 
-def new_token() -> str: return uuid.uuid4().hex
+def generate_session_id() -> str: return uuid.uuid4().hex
 
 def key_session(token:str) -> str:
     return f"{settings.session_prefix}:{token}"
@@ -35,12 +35,12 @@ async def get_session(token: str) -> Dict[str, str]:
 async def delete_session(token: str):
     await redis.delete(key_session(token))
 
-async def require_session(x_session_token: str | None = Header(default=None, convert_underscores=False)) -> int:
-    if not x_session_token:
+async def require_session(session_id: str | None = Header(default=None, convert_underscores=False)) -> int:
+    if not session_id:
         raise HTTPException(401, "Missing X-Session-Token")
-    sess = await get_session(x_session_token)
+    sess = await get_session(session_id)
     try:
         return int(sess['user_id'])
     except (KeyError, ValueError):
-        await delete_session(x_session_token)
+        await delete_session(session_id)
         raise HTTPException(401, "Invalid session payload")
