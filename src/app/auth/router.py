@@ -1,15 +1,15 @@
 # domain/auth/router.py
 from fastapi import Header, APIRouter
 from src.app.auth.session_factory import delete_session
-from src.app.auth.service import login
 from src.app.user.dto import User
+from src.app.auth.service import authenticate_and_create_session
 
 
 router = APIRouter()
 
 @router.post("/login")
-async def authenticate_and_create_session(req:User):
-    session_id = await login(req)
+async def login(req:User):
+    session_id = await authenticate_and_create_session(req)
     return {"status": 200,
             "message": "로그인 성공.",
             "session_id": session_id}
