@@ -1,6 +1,6 @@
 from fastapi import HTTPException
 from src.app.auth.session_factory import new_token, create_session
-from src.app.syllabus.service import SyllabusCollector
+from src.app.login.service import SyllabusCollector
 
 def login(req):
     collector = SyllabusCollector()
