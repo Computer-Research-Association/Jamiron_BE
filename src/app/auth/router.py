@@ -1,6 +1,6 @@
 # domain/auth/router.py
-from fastapi import Header, APIRouter
-from src.app.auth.session_factory import delete_session
+from fastapi import Header, APIRouter, Depends
+from src.app.auth.session_factory import delete_session, require_session
 from src.app.user.dto import User
 from src.app.auth.service import authenticate_and_create_session
 
@@ -20,3 +20,11 @@ async def logout(session_id: str | None = Header(default=None, convert_underscor
         await delete_session(session_id)
     return {"status": 200,
             "message": "로그아웃 성공."}
+
+@router.get("/me")
+async def me(session_id:str | None = Header(default=None, convert_underscores=False)):
+    await require_session(session_id)
+    return {
+        "status": 200,
+        "message": "인증 성공"
+    }
