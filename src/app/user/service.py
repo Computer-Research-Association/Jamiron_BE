@@ -2,77 +2,114 @@ import logging
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from pydantic import BaseModel
-from typing import Dict, Any
-
-from ..model import UserSyllabusData  # 이 부분을 추가해야 합니다.
-
-
-# Pydantic 모델을 파일 상단에 정의하거나 import하세요.
-class UserDate(BaseModel):
-    user_id: str
-    class_code: str
-    professor_name: str
-    year: str
-    semester: str
-
-# 데이터베이스 모델도 새로운 구조에 맞게 변경되어야 합니다.
-# from ..model import UserSyllabusData
+from typing import List, Dict, Any
+from ..model import UserSyllabusData, Syllabus  # 모델 임포트
 
 logger = logging.getLogger(__name__)
 
-def create_or_update_user_syllabuses(db: Session, user_data: UserDate) -> Dict[str, Any]:
+# Pydantic 모델
+class UserDate(BaseModel):
+    user_id: str
+    syllabuses: Dict[str, str]  # {class_code: professor_name}
+    year: str
+    semester: str
+
+def create_or_update_user_syllabuses(db: Session, user_data: UserDate) -> List[Dict[str, Any]]:
     """
     UserDate 모델의 데이터를 기반으로 사용자의 학기별, 강의별 데이터를
     생성하거나 업데이트합니다.
     """
-    logger.info(f"서비스: 사용자 강의 데이터 처리 시작 - User ID: {user_data.user_id}, Class Code: {user_data.class_code}")
+    logger.info(f"서비스: 사용자 강의 데이터 처리 시작 - User ID: {user_data.user_id}")
 
-    # 1. user_id, year, semester, class_code를 기준으로 기존 데이터가 있는지 확인
-    db_entry = db.query(UserSyllabusData).filter(
-        UserSyllabusData.user_id == user_data.user_id,
-        UserSyllabusData.year == user_data.year,
-        UserSyllabusData.semester == user_data.semester,
-        UserSyllabusData.class_code == user_data.class_code
-    ).first()
+    results = []
 
-    try:
-        if db_entry:
-            # 2. 기존 데이터가 있으면 교수명 업데이트
-            logger.info(f"서비스: 기존 강의 데이터 업데이트 - ID: {db_entry.id}")
-            db_entry.professor_name = user_data.professor_name
-            db.commit()
-            db.refresh(db_entry)
-        else:
-            # 3. 새로운 데이터 생성
-            logger.info("서비스: 새로운 강의 데이터 생성")
-            new_entry = UserSyllabusData(
-                user_id=user_data.user_id,
-                year=user_data.year,
-                semester=user_data.semester,
-                class_code=user_data.class_code,
-                professor_name=user_data.professor_name
-            )
-            db.add(new_entry)
-            db.commit()
-            db.refresh(new_entry)
-            db_entry = new_entry
+    # syllabuses 딕셔너리를 순회하며 처리
+    for class_code, professor_name in user_data.syllabuses.items():
+        db_entry = db.query(UserSyllabusData).filter(
+            UserSyllabusData.user_id == user_data.user_id,
+            UserSyllabusData.year == user_data.year,
+            UserSyllabusData.semester == user_data.semester,
+            UserSyllabusData.class_code == class_code
+        ).first()
 
-        # 4. 처리된 데이터를 딕셔너리 형태로 반환
-        return {
-            "id": db_entry.id,
-            "user_id": db_entry.user_id,
-            "year": db_entry.year,
-            "semester": db_entry.semester,
-            "class_code": db_entry.class_code,
-            "professor_name": db_entry.professor_name
-        }
+        try:
+            if db_entry:
+                # 기존 데이터가 있으면 교수명 업데이트
+                logger.info(f"서비스: 기존 강의 데이터 업데이트 - ID: {db_entry.id}")
+                db_entry.professor_name = professor_name
+                db.commit()
+                db.refresh(db_entry)
+            else:
+                # 새로운 데이터 생성
+                logger.info(f"서비스: 새로운 강의 데이터 생성 - Class Code: {class_code}")
+                new_entry = UserSyllabusData(
+                    user_id=user_data.user_id,
+                    year=user_data.year,
+                    semester=user_data.semester,
+                    class_code=class_code,
+                    professor_name=professor_name
+                )
+                db.add(new_entry)
+                db.commit()
+                db.refresh(new_entry)
+                db_entry = new_entry
 
-    except IntegrityError:
-        db.rollback()
-        logger.error(
-            f"서비스: 데이터 무결성 오류 발생 - User ID: {user_data.user_id}, Class Code: {user_data.class_code}")
-        raise ValueError("동일한 사용자, 연도, 학기에 대한 강의 데이터가 이미 존재합니다.")
-    except Exception as e:
-        db.rollback()
-        logger.error(f"서비스: 강의 데이터 처리 중 예상치 못한 오류 - {str(e)}", exc_info=True)
-        raise e
+            # 처리된 데이터 리스트에 추가
+            results.append({
+                "id": db_entry.id,
+                "user_id": db_entry.user_id,
+                "year": db_entry.year,
+                "semester": db_entry.semester,
+                "class_code": db_entry.class_code,
+                "professor_name": db_entry.professor_name
+            })
+
+        except IntegrityError:
+            db.rollback()
+            logger.error(
+                f"서비스: 데이터 무결성 오류 발생 - User ID: {user_data.user_id}, Class Code: {class_code}")
+            raise ValueError(f"중복 데이터 존재: user_id={user_data.user_id}, year={user_data.year}, semester={user_data.semester}, class_code={class_code}")
+        except Exception as e:
+            db.rollback()
+            logger.error(f"서비스: 강의 데이터 처리 중 예상치 못한 오류 - {str(e)}", exc_info=True)
+            raise e
+
+    return results
+
+def get_user_syllabuses(db: Session, user_id: str) -> List[Dict[str, Any]]:
+    """
+    user_syllabus_data에서 사용자의 강의 정보를 찾고,
+    해당 정보를 syllabuses 테이블의 강의 계획서와 매칭합니다.
+    """
+    # 1. user_syllabus_data 테이블에서 사용자의 강의 데이터 조회
+    user_courses = db.query(UserSyllabusData).filter(
+        UserSyllabusData.user_id == user_id
+    ).all()
+
+    if not user_courses:
+        # 사용자가 수강한 강의가 없으면 빈 리스트 반환
+        return []
+
+    results = []
+
+    # 2. 각 강의에 대해 syllabuses 테이블에서 매칭되는 강의 계획서 찾기
+    for course in user_courses:
+        matching_syllabus = db.query(Syllabus).filter(
+            Syllabus.class_code == course.class_code,
+            Syllabus.year == course.year,
+            # 필요 시 semester도 매칭
+            # Syllabus.semester == course.semester
+        ).first()
+
+        if matching_syllabus:
+            results.append({
+                "user_id": course.user_id,
+                "class_code": course.class_code,
+                "year": course.year,
+                "semester": course.semester,
+                "professor_name": course.professor_name,
+                "syllabus_description": matching_syllabus.description,
+                "syllabus_objectives": matching_syllabus.objectives
+            })
+
+    return results
