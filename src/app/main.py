@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from .syllabus.router import router as login_router
 from fastapi import FastAPI
 from .classifier.router import router as classifier_router
+from .user.router import router as user_router
 from .config.database import engine, test_connection
 from .model import Base  # models에서 Base import
 import logging
@@ -20,6 +21,7 @@ async def startup_event():
         print("❌ Failed to connect to database")
 
 app.include_router(login_router, prefix="/api/login")
+app.include_router(user_router, prefix="/api/user")
 app.include_router(classifier_router, prefix="/api/classifier")
 
 @app.get("/")
