@@ -18,22 +18,22 @@ def now() -> int: return int(time.time())
 
 def generate_session_id() -> str: return uuid.uuid4().hex
 
-def key_session(token:str) -> str:
-    return f"{settings.session_prefix}:{token}"
+def key_session(session_id:str) -> str:
+    return f"{settings.session_prefix}:{session_id}"
 
-async def create_session(token: str, user_id: int):
-    key = key_session(token)
+async def create_session(session_id: str, user_id: int):
+    key = key_session(session_id)
     await redis.hset(key, mapping={"user_id": str(user_id), "issued_at": str(now())})
     await redis.expire(key, SESSION_TTL)
 
-async def get_session(token: str) -> Dict[str, str]:
-    sess = await redis.hgetall(key_session(token))
+async def get_session(session_id: str) -> Dict[str, str]:
+    sess = await redis.hgetall(key_session(session_id))
     if not sess:
         raise HTTPException(status_code=401, detail="Invalid or expired session")
     return sess
 
-async def delete_session(token: str):
-    await redis.delete(key_session(token))
+async def delete_session(session_id: str):
+    await redis.delete(key_session(session_id))
 
 async def require_session(session_id: str | None = Header(default=None, convert_underscores=False)) -> int:
     if not session_id:
