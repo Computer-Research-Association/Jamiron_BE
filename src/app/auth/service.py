@@ -1,5 +1,5 @@
 from fastapi import HTTPException
-from src.app.auth.session import new_token, create_session
+from src.app.auth.session_factory import new_token, create_session
 from src.app.syllabus.service import SyllabusCollector
 
 def login(req):
@@ -11,7 +11,6 @@ def login(req):
 
     # 토큰 발급. 고유한 id
     token = new_token()
-    # redis에 user id랑 고유한 토큰 id 전달
+
     create_session(token, user_id=req.user_id)
-    # 프로그램 환경이라 쿠키 대신 헤더/바디로 토큰을 전달
     return token

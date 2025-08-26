@@ -11,6 +11,7 @@ redis = Redis(
     port=settings.redis_port,
     decode_responses=True
 )
+
 SESSION_TTL = settings.session_ttl
 
 def now() -> int: return int(time.time())
