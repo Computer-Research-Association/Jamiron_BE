@@ -97,8 +97,7 @@ def get_user_syllabuses(db: Session, user_id: str) -> List[Dict[str, Any]]:
         matching_syllabus = db.query(Syllabus).filter(
             Syllabus.class_code == course.class_code,
             Syllabus.year == course.year,
-            # 필요 시 semester도 매칭
-            # Syllabus.semester == course.semester
+            Syllabus.semester == course.semester
         ).first()
 
         if matching_syllabus:

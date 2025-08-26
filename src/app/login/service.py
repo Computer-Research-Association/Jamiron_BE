@@ -45,7 +45,7 @@ class SyllabusCollector:
         self.login_url = self.base_url + "login/login.php"
         self.progress_callback = progress_callback
         self.current_user_year = None
-        self.current_user_hakgi = None
+        self.current_user_semester = None
         self.current_user_id = user_id
         self.saved_syllabuses_count = 0  # JSON 리스트 대신 저장 카운트 사용
         self.collected_class_codes = []
@@ -121,9 +121,9 @@ class SyllabusCollector:
                 self.driver = None
             return False
 
-    def navigate_to_planner_page(self, year: str, hakgi: str) -> bool:
+    def navigate_to_planner_page(self, year: str, semester: str) -> bool:
         self.current_user_year = year
-        self.current_user_hakgi = hakgi
+        self.current_user_semester = semester
 
         if not self.driver:
             self._update_progress("WebDriver가 초기화되지 않았습니다.", 0)
@@ -144,12 +144,12 @@ class SyllabusCollector:
                 return False
             my_year_select.select_by_value(year)
 
-            my_hakgi_select = Select(
+            my_semester_select = Select(
                 WebDriverWait(self.driver, 10).until(
-                    EC.presence_of_element_located((By.CSS_SELECTOR, "#kang_hakgi"))
+                    EC.presence_of_element_located((By.CSS_SELECTOR, "#kang_semester"))
                 )
             )
-            my_hakgi_select.select_by_value(hakgi)
+            my_semester_select.select_by_value(semester)
 
             load_btn = WebDriverWait(self.driver, 10).until(
                 EC.element_to_be_clickable(
@@ -212,14 +212,14 @@ class SyllabusCollector:
 
             print(f"처리 중인 URL: {url}")
             temp = url[-16:]
-            syllabus_detail_url = f"{self.base_url}SMART/lp_view_4student_1.php?kang_yy={temp[:4]}&kang_hakgi={temp[5]}&kang_code={temp[-8:]}&kang_ban={temp[6:8]}"
+            syllabus_detail_url = f"{self.base_url}SMART/lp_view_4student_1.php?kang_yy={temp[:4]}&kang_semester={temp[5]}&kang_code={temp[-8:]}&kang_ban={temp[6:8]}"
 
             try:
                 data = self._parse_syllabus_page(
                     syllabus_detail_url,
                     title,
                     self.current_user_year,
-                    self.current_user_hakgi,
+                    self.current_user_semester,
                 )
 
                 if data:
@@ -241,7 +241,7 @@ class SyllabusCollector:
                         )
 
                         processed_data = process_and_save_syllabus(
-                            data, self.current_user_year, self.current_user_hakgi, title
+                            data, self.current_user_year, self.current_user_semester, title
                         )
 
                         if processed_data:
@@ -294,7 +294,7 @@ class SyllabusCollector:
             existing_syllabus = db.query(Syllabus).filter(
                 Syllabus.class_code == syllabus_data.get('class_code'),
                 Syllabus.year == syllabus_data.get('year'),
-                Syllabus.hakgi == syllabus_data.get('hakgi')
+                Syllabus.semester == syllabus_data.get('semester')
             ).first()
 
             if existing_syllabus:
@@ -314,7 +314,7 @@ class SyllabusCollector:
                     professor_name=syllabus_data.get('professor_name', ''),
                     prof_email=syllabus_data.get('prof_email', ''),
                     year=syllabus_data.get('year', ''),
-                    hakgi=syllabus_data.get('hakgi', ''),
+                    semester=syllabus_data.get('semester', ''),
                     objectives=syllabus_data.get('objectives', ''),
                     description=syllabus_data.get('description', ''),
                     schedule=syllabus_data.get('schedule', '')
@@ -374,7 +374,7 @@ class SyllabusCollector:
         return classes_list
 
     def _parse_syllabus_page(
-        self, url: str, class_title: str, year: str, hakgi: str
+        self, url: str, class_title: str, year: str, semester: str
     ) -> dict:
         self.driver.get(url)
         soup = BeautifulSoup(self.driver.page_source, "html.parser")
@@ -438,7 +438,7 @@ class SyllabusCollector:
             "professor_name": prof_name,
             "prof_email": prof_email,
             "year": year,
-            "hakgi": hakgi,
+            "semester": semester,
             "objectives": objectives_text.strip(),
             "description": description_text.strip(),
             "schedule": schedule_text.strip(),
@@ -448,7 +448,7 @@ class SyllabusCollector:
         """저장된 강의 계획서 개수 반환"""
         return self.saved_syllabuses_count
 
-    def get_all_syllabuses_from_db(self, year: str = None, hakgi: str = None) -> list:
+    def get_all_syllabuses_from_db(self, year: str = None, semester: str = None) -> list:
         """데이터베이스에서 강의 계획서 조회"""
         db = SessionLocal()
         try:
@@ -456,8 +456,8 @@ class SyllabusCollector:
 
             if year:
                 query = query.filter(Syllabus.year == year)
-            if hakgi:
-                query = query.filter(Syllabus.hakgi == hakgi)
+            if semester:
+                query = query.filter(Syllabus.semester == semester)
 
             syllabuses = query.all()
 
@@ -471,7 +471,7 @@ class SyllabusCollector:
                     "professor_name": syllabus.professor_name,
                     "prof_email": syllabus.prof_email,
                     "year": syllabus.year,
-                    "hakgi": syllabus.hakgi,
+                    "semester": syllabus.semester,
                     "objectives": syllabus.objectives,
                     "description": syllabus.description,
                     "schedule": syllabus.schedule,

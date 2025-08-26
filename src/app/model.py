@@ -15,7 +15,7 @@ class Syllabus(Base):
     professor_name = Column(String(100))
     prof_email = Column(String(255))
     year = Column(String(10), nullable=False)
-    hakgi = Column(String(10), nullable=False)
+    semester = Column(String(10), nullable=False)
     objectives = Column(Text)
     description = Column(Text)
     schedule = Column(Text)
