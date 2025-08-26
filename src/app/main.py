@@ -1,5 +1,6 @@
 from fastapi import FastAPI
-from .login.router import router as login_router
+from .syllabus.router import router as login_router
+from fastapi import FastAPI
 from .classifier.router import router as classifier_router
 from .user.router import router as user_router
 from .config.database import engine, test_connection

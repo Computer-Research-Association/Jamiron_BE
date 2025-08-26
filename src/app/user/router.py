@@ -1,3 +1,6 @@
+from fastapi import APIRouter, Depends
+from src.app.auth.session_factory import require_session
+
 import logging
 from fastapi import APIRouter, Depends, HTTPException  # HTTPException 사용을 위해 임포트
 from pydantic import BaseModel
@@ -11,6 +14,10 @@ from . import service as user_service  # user_service로 별칭을 지정하여 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
+@router.get("/me")
+async def me(user_id: int = Depends(require_session)):
+    # 여기서 DB/캐시로 과목·권한 조회 (필요시 5~10분 캐시)
+    return {"user_id": user_id, "courses": []}
 
 # 요청 바디의 데이터 구조를 정의
 # syllabuses 딕셔너리 안에 실제 강의 정보가 들어갈 것으로 예상됩니다.
