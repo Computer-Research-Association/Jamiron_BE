@@ -3,9 +3,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from typing import List, Dict, Any
-from ..config.database import get_db
-from ..user.service import get_user_syllabuses
-from . import service as user_service  # user_service로 별칭 지정
+from src.app.config.database import get_db
+from src.app.user.service import get_user_syllabuses
+from src.app.user import service as user_service  # user_service로 별칭 지정
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -69,4 +69,8 @@ def read_user_syllabuses(
             detail=f"User ID '{user_id}', Year '{year}', Semester '{semester}'에 대한 강의 계획서를 찾을 수 없습니다."
         )
 
-    return syllabuses
+    return {
+        "status": 200,
+        "message": "사용자 강의 계획서 조회 성공.",
+        "syllabus_list": syllabuses
+    }

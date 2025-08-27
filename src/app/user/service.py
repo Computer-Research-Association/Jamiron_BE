@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from pydantic import BaseModel
 from typing import List, Dict, Any
-from ..model import UserSyllabusData, Syllabus  # 모델 임포트
+from src.app.model import UserSyllabusData, Syllabus  # 모델 임포트
 
 logger = logging.getLogger(__name__)
 

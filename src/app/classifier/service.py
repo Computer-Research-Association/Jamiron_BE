@@ -1,8 +1,8 @@
 from typing import List, Dict
-from .methods.rule import RuleBasedClassifier
-from .methods.ml import MLClassifier
+from src.app.classifier.methods.rule import RuleBasedClassifier
+from src.app.classifier.methods.ml import MLClassifier
 
-def classify_with_ml(file_data_list: List[Dict], db=None) -> List[Dict]:
+def classify_with_rule_and_ml(file_data_list: List[Dict], db=None) -> List[Dict]:
     """
     1. Rule 기반 분류 → label이 unclassified인 경우만
     2. ML 기반 분류 → 남은 unclassified만

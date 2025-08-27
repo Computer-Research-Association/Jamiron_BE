@@ -15,7 +15,7 @@ import math
 import json
 from sqlalchemy.orm import Session
 from src.app.model import Syllabus  # models.py에서 import
-from ..config.database import SessionLocal  # 데이터베이스 세션
+from src.app.config.database import SessionLocal  # 데이터베이스 세션
 
 
 # process_and_save_syllabus 함수는 preprocessor.py에서 import하여 사용
