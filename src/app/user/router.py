@@ -11,10 +11,10 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-# 요청 바디 모델: syllabuses 딕셔너리 {class_code: professor_name}
+# 요청 바디 모델: syllabuses 딕셔너리 {class_code: class_division}
 class UserDate(BaseModel):
     user_id: str
-    syllabuses: Dict[str, str]  # key=class_code, value=professor_name
+    syllabuses: Dict[str, str]  # key=class_code, value=class_division
     year: str
     semester: str
 
@@ -51,28 +51,3 @@ async def create_or_update_user_syllabus_data(
 
 
 # 특정 사용자의 강의 계획서 조회
-'''
-@router.get("/users", response_model=List[Dict[str, Any]])
-def read_user_syllabuses(
-        user_id: str,
-        year: str,
-        semester: str,
-        db: Session = Depends(get_db)
-):
-    """
-    특정 사용자의 수강 과목과 매칭되는 강의 계획서 데이터를 조회합니다.
-    """
-    syllabuses = get_user_syllabuses(db, user_id, year, semester)
-
-    if not syllabuses:
-        raise HTTPException(
-            status_code=404,
-            detail=f"User ID '{user_id}', Year '{year}', Semester '{semester}'에 대한 강의 계획서를 찾을 수 없습니다."
-        )
-
-    return {
-        "status": 200,
-        "message": "사용자 강의 계획서 조회 성공.",
-        "syllabus_list": syllabuses
-    }
-'''

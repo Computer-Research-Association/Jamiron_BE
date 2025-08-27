@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 # Pydantic 모델
 class UserDate(BaseModel):
     user_id: str
-    syllabuses: Dict[str, str]  # {class_code: professor_name}
+    syllabuses: Dict[str, str]  # {class_code: class_division}
     year: str
     semester: str
 
@@ -24,21 +24,19 @@ def create_or_update_user_syllabuses(db: Session, user_data: UserDate) -> List[D
     results = []
 
     # syllabuses 딕셔너리를 순회하며 처리
-    for class_code, professor_name in user_data.syllabuses.items():
+    for class_code, class_division in user_data.syllabuses.items():
         db_entry = db.query(UserSyllabusData).filter(
             UserSyllabusData.user_id == user_data.user_id,
             UserSyllabusData.year == user_data.year,
             UserSyllabusData.semester == user_data.semester,
-            UserSyllabusData.class_code == class_code
+            UserSyllabusData.class_code == class_code,
+            UserSyllabusData.class_division == class_division
+
         ).first()
 
         try:
             if db_entry:
-                # 기존 데이터가 있으면 교수명 업데이트
-                logger.info(f"서비스: 기존 강의 데이터 업데이트 - ID: {db_entry.id}")
-                db_entry.professor_name = professor_name
-                db.commit()
-                db.refresh(db_entry)
+                logger.info(f"서비스: 기존 데이터 존재 - ID: {db_entry.id}, 건너뜀")
             else:
                 # 새로운 데이터 생성
                 logger.info(f"서비스: 새로운 강의 데이터 생성 - Class Code: {class_code}")
@@ -47,7 +45,7 @@ def create_or_update_user_syllabuses(db: Session, user_data: UserDate) -> List[D
                     year=user_data.year,
                     semester=user_data.semester,
                     class_code=class_code,
-                    professor_name=professor_name
+                    class_division=class_division
                 )
                 db.add(new_entry)
                 db.commit()
@@ -61,7 +59,7 @@ def create_or_update_user_syllabuses(db: Session, user_data: UserDate) -> List[D
                 "year": db_entry.year,
                 "semester": db_entry.semester,
                 "class_code": db_entry.class_code,
-                "professor_name": db_entry.professor_name
+                "class_division": db_entry.class_division
             })
 
         except IntegrityError:

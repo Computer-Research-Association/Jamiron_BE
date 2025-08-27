@@ -3,7 +3,7 @@ from collections import Counter
 
 CONTENT = 'rule_based_content'
 CLASS= 'syllabus_class_name'
-PROFESSOR = 'professor_name'
+PROFESSOR = 'syllabus_professor_name'
 COUNT = 'professor_count'
 
 
@@ -18,8 +18,10 @@ class RuleBasedClassifier:
         prof_count = Counter(prof_names)
 
         for idx, syllabus in enumerate(self.syllabus_list):
-            syllabus[COUNT] = str(prof_count[syllabus[PROFESSOR]])
-
+            if syllabus[PROFESSOR] == "" or syllabus[PROFESSOR] == " ":
+                syllabus[COUNT] = "2"
+            else:
+                syllabus[COUNT] = str(prof_count[syllabus[PROFESSOR]])
         return self.syllabus_list
 
 
@@ -27,14 +29,10 @@ class RuleBasedClassifier:
         for syllabus in self.syllabus_list:
             match True:
                 case _ if syllabus["class_code"] in file[CONTENT]:
-                    print(f"분류 성공{syllabus[CLASS]} {file['file_name']}\n")
                     return syllabus[CLASS]
                 case _ if syllabus[CLASS] in file[CONTENT]:
-                    print(f"분류 성공{syllabus[CLASS]} {file['file_name']}\n")
                     return syllabus[CLASS]
                 case _ if syllabus[COUNT] == "1" and syllabus[PROFESSOR] in file[CONTENT]:
-                    print(f"분류 성공{syllabus[CLASS]} {file['file_name']}\n")
                     return syllabus[CLASS]
 
-        print("분류 실패 ㅠㅠ")
         return 'unclassified'

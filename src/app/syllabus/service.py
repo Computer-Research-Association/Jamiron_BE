@@ -9,36 +9,17 @@ from selenium.webdriver.support.ui import Select
 from bs4 import BeautifulSoup
 import time
 import re
-import os
-import threading
-import math
-import json
 from sqlalchemy.orm import Session
-from src.app.model import Syllabus  # models.py에서 import
-from src.app.config.database import SessionLocal  # 데이터베이스 세션
-
-
-# process_and_save_syllabus 함수는 preprocessor.py에서 import하여 사용
-
+from src.app.model import Syllabus
+from src.app.config.database import SessionLocal
 
 def clean_text(text: str) -> str:
-    """텍스트에서 공백을 정리하고 앞뒤 공백을 제거함."""
     text = re.sub(r"\s+", " ", text).strip()
     return text
 
 class SyllabusCollector:
-    """
-    히즈넷에서 강의 계획서 정보를 수집하고 데이터베이스에 저장하는 클래스.
-    """
 
     def __init__(self, progress_callback=None):
-        """
-        SyllabusCollector 인스턴스를 초기화함.
-
-        Args:
-            progress_callback (callable, optional): 진행 상황을 업데이트할 콜백 함수.
-                                                   메시지와 진행률(0-100)을 인자로 받음.
-        """
         self.driver = None
         self.base_url = "https://hisnet.handong.edu/"
         self.login_url = self.base_url + "login/login.php"
@@ -49,12 +30,10 @@ class SyllabusCollector:
         self.collected_class_codes = []
 
     def _update_progress(self, message: str, percent: int):
-        """진행 상황을 콜백 함수를 통해 업데이트함."""
         if self.progress_callback:
             self.progress_callback(message, percent)
 
     def _initialize_webdriver(self):
-        """WebDriver를 초기화함."""
         if self.driver:
             return
 
@@ -73,9 +52,6 @@ class SyllabusCollector:
             raise
 
     def login(self, user_id: str, password: str) -> bool:
-        """
-        히즈넷 사이트에 로그인 수행.
-        """
         self._initialize_webdriver()
         if not self.driver:
             self._update_progress("WebDriver가 초기화되지 않았습니다.", 0)
@@ -182,7 +158,6 @@ class SyllabusCollector:
 
     def download_planners(self):
         self.collected_syllabuses = []
-        """강의 계획서를 다운로드하고 데이터베이스에 저장"""
         if not self.driver:
             self._update_progress("WebDriver가 초기화되지 않았습니다.", 0)
             return
@@ -196,13 +171,11 @@ class SyllabusCollector:
 
         self._update_progress("데이터베이스 연결 확인 중...", 5)
 
-        # 데이터베이스 연결 테스트
         if not self.test_database_connection():
             self._update_progress("데이터베이스 연결 실패! 설정을 확인하세요.", 0)
             return
 
-        # 강의 코드 리스트 초기화 (혹시 모를 재호출 대비)
-        self.collected_class_codes = []  # ✨ 이 줄을 추가하여 호출 시마다 초기화합니다. ✨
+        self.collected_class_codes = []
 
         for idx, class_info in enumerate(classes_list, 1):
             url = class_info["href"]
@@ -221,20 +194,8 @@ class SyllabusCollector:
                 )
 
                 if data:
-                    raw_success = self._save_syllabus_to_db(data)
-                    if raw_success:
-                        self.saved_syllabuses_count += 1
-
-                        syllabus_info = {
-                            "class_code": data.get('class_code'),
-                            "class_name": data.get('class_name'),
-                            "professor_name": data.get('professor_name')
-                        }
-                        if syllabus_info not in self.collected_syllabuses:
-                            self.collected_syllabuses.append(syllabus_info)
-
                     try:
-                        from ..utils.file_process.preprocessor import (
+                        from src.app.utils.file_process.preprocessor import (
                             process_and_save_syllabus,
                         )
 
@@ -244,16 +205,14 @@ class SyllabusCollector:
 
                         if processed_data:
                             processed_success = self._save_syllabus_to_db(processed_data)
-                            # 만약 전처리된 데이터 저장이 성공했고, raw 데이터 저장 시 코드를 추가하지 않았다면 여기에서 추가할 수 있습니다.
-                            # 하지만 일반적으로 raw 데이터 저장 시 한 번만 추가하는 것이 목적에 부합합니다.
-                            # if processed_success and not raw_success: # 이 조건은 raw_success가 False일 때만 추가하므로, 이미 추가된 코드를 다시 추가하지 않을 때 유용합니다.
-                            #     class_code = processed_data.get('class_code')
-                            #     if class_code and class_code not in self.collected_class_codes:
-                            #         self.collected_class_codes.append(class_code)
-                            if processed_success and raw_success is None:  # raw_success가 실패했을 때 processed_data가 저장되었다면
-                                class_code = processed_data.get('class_code')
-                                if class_code and class_code not in self.collected_class_codes:
-                                    self.collected_class_codes.append(class_code)
+                            syllabus_info = {
+                                "class_code": data.get('class_code'),
+                                "class_division": str(int(temp[-2:])),
+                                "class_name": data.get('class_name'),
+                                "professor_name": data.get('professor_name')
+                            }
+                            if processed_success:
+                                self.collected_syllabuses.append(syllabus_info)
 
                     except Exception as preprocessor_error:
                         print(f"전처리 과정에서 오류 발생 (원본은 저장됨): {preprocessor_error}")
@@ -278,37 +237,32 @@ class SyllabusCollector:
         )
 
     def get_collected_syllabuses(self) -> list:
-        """수집된 강의 코드, 강의명, 교수명 리스트를 반환"""
         return self.collected_syllabuses
 
     def _save_syllabus_to_db(self, syllabus_data: dict) -> bool:
-        """강의 계획서 데이터를 데이터베이스에 저장"""
         db = SessionLocal()
         try:
-            # 데이터베이스 연결 테스트
-            #db.execute("SELECT 1")
-
-            # 기존 데이터 확인 (중복 방지)
             existing_syllabus = db.query(Syllabus).filter(
                 Syllabus.class_code == syllabus_data.get('class_code'),
+                Syllabus.class_division == syllabus_data.get('class_division'),
                 Syllabus.year == syllabus_data.get('year'),
                 Syllabus.semester == syllabus_data.get('semester')
             ).first()
 
             if existing_syllabus:
-                # 기존 데이터 업데이트
                 existing_syllabus.class_name = syllabus_data.get('class_name', '')
                 existing_syllabus.professor_name = syllabus_data.get('professor_name', '')
+                existing_syllabus.class_division = syllabus_data.get('class_division', '')
                 existing_syllabus.prof_email = syllabus_data.get('prof_email', '')
                 existing_syllabus.objectives = syllabus_data.get('objectives', '')
                 existing_syllabus.description = syllabus_data.get('description', '')
                 existing_syllabus.schedule = syllabus_data.get('schedule', '')
                 print(f"기존 강의 계획서 업데이트: {syllabus_data.get('class_name')}")
             else:
-                # 새로운 데이터 생성
                 new_syllabus = Syllabus(
                     class_name=syllabus_data.get('class_name', ''),
                     class_code=syllabus_data.get('class_code', ''),
+                    class_division=syllabus_data.get('class_division', ''),
                     professor_name=syllabus_data.get('professor_name', ''),
                     prof_email=syllabus_data.get('prof_email', ''),
                     year=syllabus_data.get('year', ''),
@@ -318,15 +272,12 @@ class SyllabusCollector:
                     schedule=syllabus_data.get('schedule', '')
                 )
                 db.add(new_syllabus)
-                print(f"새 강의 계획서 저장: {syllabus_data.get('class_name')}")
-
             db.commit()
-            print(f"✅ DB 저장 성공: {syllabus_data.get('class_name')}")
             return True
 
         except Exception as e:
             db.rollback()
-            print(f"❌ 데이터베이스 저장 오류: {e}")
+            print(f"데이터베이스 저장 오류: {e}")
             print(f"실패한 데이터: {syllabus_data}")
             return False
         finally:
@@ -344,7 +295,6 @@ class SyllabusCollector:
             div_elements = self.driver.find_elements(
                 By.CSS_SELECTOR, "#div_box_1 > div"
             )
-            print(f"div_box_1 내부의 div 요소 개수: {len(div_elements)}")
 
             for i in range(1, len(div_elements) + 1):
                 try:
@@ -357,7 +307,6 @@ class SyllabusCollector:
 
                     if href and text:
                         classes_list.append({"href": href, "title": text})
-                        print(f"강의 추가: {text} - {href}")
 
                 except Exception as e:
                     print(f"div {i} 처리 중 오류: {e}")
@@ -429,10 +378,12 @@ class SyllabusCollector:
         match = re.search(r"kang_code=([^&]+)", url)
         kang_code = match.group(1)
         temp = url[-16:]
+        print(temp[-2:])
 
         return {
             "class_name": class_title,
             "class_code": kang_code,
+            "class_division": str(int(temp[-2:])),
             "professor_name": prof_name,
             "prof_email": prof_email,
             "year": year,
@@ -443,11 +394,9 @@ class SyllabusCollector:
         }
 
     def get_saved_syllabuses_count(self) -> int:
-        """저장된 강의 계획서 개수 반환"""
         return self.saved_syllabuses_count
 
     def get_all_syllabuses_from_db(self, year: str = None, semester: str = None) -> list:
-        """데이터베이스에서 강의 계획서 조회"""
         db = SessionLocal()
         try:
             query = db.query(Syllabus)
@@ -466,6 +415,7 @@ class SyllabusCollector:
                     "id": syllabus.id,
                     "class_name": syllabus.class_name,
                     "class_code": syllabus.class_code,
+                    "class_division": syllabus.class_division,
                     "professor_name": syllabus.professor_name,
                     "prof_email": syllabus.prof_email,
                     "year": syllabus.year,
@@ -484,15 +434,13 @@ class SyllabusCollector:
             db.close()
 
     def test_database_connection(self) -> bool:
-        """데이터베이스 연결 테스트"""
         try:
             db = SessionLocal()
             #db.execute("SELECT 1")
             db.close()
-            print("✅ 데이터베이스 연결 성공!")
             return True
         except Exception as e:
-            print(f"❌ 데이터베이스 연결 실패: {e}")
+            print(f"데이터베이스 연결 실패: {e}")
             return False
 
     def close(self):

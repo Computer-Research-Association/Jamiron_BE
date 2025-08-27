@@ -94,6 +94,7 @@ def process_and_save_syllabus(
         processed_data = {
             "class_name": data.get("class_name", ""),  # 제목은 번역하지 않고 원본 유지
             "class_code": data.get("class_code", ""),
+            "class_division": data.get("class_division", ""),
             "professor_name": data.get("professor_name", ""),
             "prof_email": data.get("prof_email", ""),
             "year": data.get("year", ""),
@@ -167,6 +168,7 @@ def process_and_save_syllabus(
         return {
             "class_name": data.get("class_name", ""),
             "class_code": data.get("class_code", ""),
+            "class_division": data.get("class_division", ""),
             "professor_name": data.get("professor_name", ""),
             "year": data.get("year", ""),
             "semester": data.get("semester", ""),
