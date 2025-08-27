@@ -1,34 +1,38 @@
 from typing import List, Dict
 from collections import Counter
 
+CONTENT = 'rule_based_content'
+CLASS= 'syllabus_class_name'
+PROFESSOR = 'syllabus_professor_name'
+COUNT = 'professor_count'
+
 
 class RuleBasedClassifier:
-    def __init__(self, syllabus: List[Dict[str, str]]):
-        self.syllabus = syllabus
+
+    def __init__(self, syllabus_list: List[Dict[str, str]]):
+        self.syllabus_list = syllabus_list
+        self.count_prof_name()
 
     def count_prof_name(self):
-        prof_names = [entry['professor_name'] for entry in self.syllabus]
+        prof_names = [syllabus[PROFESSOR] for syllabus in self.syllabus_list]
         prof_count = Counter(prof_names)
 
-        for idx, entry in enumerate(self.syllabus):
-            # 각 row에 해당 교수이름의 등장 횟수를 추가
-            entry['p_c'] = str(prof_count[entry['professor_name']])
-
-            # 마지막 원소라면 출력
-            if idx == len(self.syllabus) - 1:
-                print(f"{entry} (마지막 원소!)")
-                print(f"{entry['p_c']} (카운트!)")
-
-        return self.syllabus
+        for idx, syllabus in enumerate(self.syllabus_list):
+            if syllabus[PROFESSOR] == "" or syllabus[PROFESSOR] == " ":
+                syllabus[COUNT] = "2"
+            else:
+                syllabus[COUNT] = str(prof_count[syllabus[PROFESSOR]])
+        return self.syllabus_list
 
 
     def classify(self, file: Dict[str, str]) -> str:
-        self.count_prof_name()
-        for entry in self.syllabus:
-            if entry["class_code"] in file["rule_based_content"]:
-                return entry["class_name"]
-            elif entry["class_name"] in file["rule_based_content"]:
-                return entry["class_name"]
-            elif entry['p_c'] == '1' and entry['professor_name'] in file["rule_based_content"]:
-                return entry["class_name"]
-            else: return "unclassified"
+        for syllabus in self.syllabus_list:
+            match True:
+                case _ if syllabus["class_code"] in file[CONTENT]:
+                    return syllabus[CLASS]
+                case _ if syllabus[CLASS] in file[CONTENT]:
+                    return syllabus[CLASS]
+                case _ if syllabus[COUNT] == "1" and syllabus[PROFESSOR] in file[CONTENT]:
+                    return syllabus[CLASS]
+
+        return 'unclassified'
