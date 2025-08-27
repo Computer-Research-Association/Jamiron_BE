@@ -1,14 +1,14 @@
-version: "3.9"
-
 services:
   app:
     build:
-      context: src/app
+      context: .
       dockerfile: Dockerfile
     container_name: app
-    env_file: .env
     ports:
-      - "${APP_PORT:-8000}:8000"  # 외부에서 접근할 포트
+      - "8000:8000"  # 외부에서 접근할 포트
+    volumes:
+      - ./src:/home/Jamiron_BE/src   # 로컬 src를 컨테이너 src에 마운트
+    command: uvicorn src.app.main:app --host 0.0.0.0 --port 8000
     depends_on:
       - mysql
       - redis
@@ -19,8 +19,8 @@ services:
     command: ["redis-server", "--appendonly", "yes"]
     volumes:
       - redis_data:/data
-    # ❌ 외부 포트 미노출(내부 전용, app만 접근)
-    # ports: (없음)
+    ports:
+      - "6379:6379"
 
   mysql:
     image: mysql:8.4
@@ -30,12 +30,12 @@ services:
       MYSQL_ROOT_PASSWORD: tempPass!
     command:
       - mysqld
-      - --default-authentication-plugin=mysql_native_password
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_general_ci
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./db/init:/docker-entrypoint-initdb.d
+    ports:
+      - "3306:3306"
 
 volumes:
   mysql_data:

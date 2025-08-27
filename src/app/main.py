@@ -1,10 +1,9 @@
 from fastapi import FastAPI
-from .syllabus.router import router as login_router
-from fastapi import FastAPI
-from .classifier.router import router as classifier_router
-from .user.router import router as user_router
-from .config.database import engine, test_connection
-from .model import Base  # models에서 Base import
+from src.app.syllabus.router import router as login_router
+from src.app.classifier.router import router as classifier_router
+from src.app.user.router import router as user_router
+from src.app.config.database import engine, test_connection
+from src.app.model import Base  # models에서 Base import
 import logging
 
 app = FastAPI()
