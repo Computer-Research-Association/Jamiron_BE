@@ -76,6 +76,7 @@ def create_or_update_user_syllabuses(db: Session, user_data: UserDate) -> List[D
 
     return results
 
+'''
 def get_user_syllabuses(db: Session, user_id: str, year: str, semester: str) -> List[Dict[str, Any]]:
     """
     user_syllabus_data에서 사용자의 강의 정보를 찾고,
@@ -113,3 +114,4 @@ def get_user_syllabuses(db: Session, user_id: str, year: str, semester: str) -> 
             })
 
     return results
+'''

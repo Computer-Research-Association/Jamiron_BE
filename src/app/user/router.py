@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from typing import List, Dict, Any
 from src.app.config.database import get_db
-from src.app.user.service import get_user_syllabuses
+#from src.app.user.service import get_user_syllabuses
 from src.app.user import service as user_service  # user_service로 별칭 지정
 
 logger = logging.getLogger(__name__)
@@ -51,6 +51,7 @@ async def create_or_update_user_syllabus_data(
 
 
 # 특정 사용자의 강의 계획서 조회
+'''
 @router.get("/users", response_model=List[Dict[str, Any]])
 def read_user_syllabuses(
         user_id: str,
@@ -74,3 +75,4 @@ def read_user_syllabuses(
         "message": "사용자 강의 계획서 조회 성공.",
         "syllabus_list": syllabuses
     }
+'''
