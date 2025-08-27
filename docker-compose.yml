@@ -1,0 +1,42 @@
+version: "3.9"
+
+services:
+  app:
+    build:
+      context: src/app
+      dockerfile: Dockerfile
+    container_name: app
+    env_file: .env
+    ports:
+      - "${APP_PORT:-8000}:8000"  # 외부에서 접근할 포트
+    depends_on:
+      - mysql
+      - redis
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    # ❌ 외부 포트 미노출(내부 전용, app만 접근)
+    # ports: (없음)
+
+  mysql:
+    image: mysql:8.4
+    container_name: mysql
+    environment:
+      TZ: Asia/Seoul
+      MYSQL_ROOT_PASSWORD: tempPass!
+    command:
+      - mysqld
+      - --default-authentication-plugin=mysql_native_password
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_general_ci
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./db/init:/docker-entrypoint-initdb.d
+
+volumes:
+  mysql_data:
+  redis_data:
