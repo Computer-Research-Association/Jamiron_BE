@@ -76,7 +76,7 @@ class Preprocessor:
 def process_and_save_syllabus(
     data: dict,
     user_year: str,
-    user_hakgi: str,
+    user_semester: str,
     class_name: str,
     output_dir: str = "src/data/syllabus",
 ):
@@ -94,10 +94,11 @@ def process_and_save_syllabus(
         processed_data = {
             "class_name": data.get("class_name", ""),  # 제목은 번역하지 않고 원본 유지
             "class_code": data.get("class_code", ""),
+            "class_division": data.get("class_division", ""),
             "professor_name": data.get("professor_name", ""),
             "prof_email": data.get("prof_email", ""),
             "year": data.get("year", ""),
-            "hakgi": data.get("hakgi", ""),
+            "semester": data.get("semester", ""),
         }
 
         # 각 필드별로 번역 수행
@@ -143,7 +144,7 @@ def process_and_save_syllabus(
         safe_class_name = safe_class_name.strip()  # 앞뒤 공백 제거
 
         # 파일명 생성
-        file_name = f"{user_year[2:]}-{user_hakgi}_{safe_class_name}.json"
+        file_name = f"{user_year[2:]}-{user_semester}_{safe_class_name}.json"
         file_path = os.path.join(syllabus_output_path, file_name)
         print(f"파일 저장 시도: {file_path}")
 
@@ -167,9 +168,10 @@ def process_and_save_syllabus(
         return {
             "class_name": data.get("class_name", ""),
             "class_code": data.get("class_code", ""),
+            "class_division": data.get("class_division", ""),
             "professor_name": data.get("professor_name", ""),
             "year": data.get("year", ""),
-            "hakgi": data.get("hakgi", ""),
+            "semester": data.get("semester", ""),
             "objectives": data.get("objectives", ""),
             "description": data.get("description", ""),
             "schedule": data.get("schedule", ""),
