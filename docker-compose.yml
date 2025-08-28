@@ -5,13 +5,15 @@ services:
       dockerfile: Dockerfile
     container_name: app
     ports:
-      - "8000:8000"  # 외부에서 접근할 포트
+      - "8000:8000"
     volumes:
-      - ./src:/home/Jamiron_BE/src   # 로컬 src를 컨테이너 src에 마운트
+      - ./src:/home/Jamiron_BE/src
     command: uvicorn src.app.main:app --host 0.0.0.0 --port 8000
     depends_on:
-      - mysql
-      - redis
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
 
   redis:
     image: redis:7-alpine
@@ -27,7 +29,10 @@ services:
     container_name: mysql
     environment:
       TZ: Asia/Seoul
-      MYSQL_ROOT_PASSWORD: tempPass!
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     command:
       - mysqld
       - --character-set-server=utf8mb4
@@ -36,6 +41,11 @@ services:
       - mysql_data:/var/lib/mysql
     ports:
       - "3306:3306"
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_ROOT_PASSWORD}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   mysql_data:
