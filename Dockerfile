@@ -14,8 +14,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     libgl1 \
     libglib2.0-0 \
-    fonts-nanum fonts-liberation \   # (한글/문서 깨짐 방지)
-    unzip curl \                     # (webdriver-manager 안정화)
+    fonts-nanum fonts-liberation \
+    unzip curl \
  && rm -rf /var/lib/apt/lists/*
 
 
