@@ -4,6 +4,7 @@ from src.app.classifier.methods.rule import RuleBasedClassifier
 from src.app.classifier.methods.ml import MLClassifier
 from src.app.model import UserSyllabusData, Syllabus
 
+
 def get_user_syllabuses(db: Session, user_id: str, year: str, semester: str) -> List[Dict[str, Any]]:
     user_courses = db.query(UserSyllabusData).filter(
         UserSyllabusData.user_id == user_id,

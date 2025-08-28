@@ -42,3 +42,8 @@ class UserSyllabusData(Base):
             name='uq_user_year_semester_code_division'
         ),
     )
+
+class User_Id(Base):
+    __tablename__ = "user_Id"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(String(50), nullable=False)
