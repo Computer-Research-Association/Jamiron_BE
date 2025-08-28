@@ -5,8 +5,14 @@ LABEL authors="seyoung"
 WORKDIR /home/Jamiron_BE
 
 COPY requirements.txt .
+COPY .env .
+
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
- && pip install --no-cache-dir --prefer-binary -r requirements.txt
+ && pip install --no-cache-dir --prefer-binary -r requirements.txt \
+ && pip install torch --index-url https://download.pytorch.org/whl/cpu \
+ && pip install sentence-transformers==5.0.0 --no-deps\
+ && pip install --no-cache-dir transformers==4.53.3 scikit-learn==1.6.1
+
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
