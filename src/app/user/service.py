@@ -7,18 +7,13 @@ from src.app.model import UserSyllabusData, Syllabus  # 모델 임포트
 
 logger = logging.getLogger(__name__)
 
-# Pydantic 모델
 class UserDate(BaseModel):
     user_id: str
-    syllabuses: Dict[str, str]  # {class_code: class_division}
+    syllabuses: Dict[str, str]
     year: str
     semester: str
 
 def create_or_update_user_syllabuses(db: Session, user_data: UserDate) -> List[Dict[str, Any]]:
-    """
-    UserDate 모델의 데이터를 기반으로 사용자의 학기별, 강의별 데이터를
-    생성하거나 업데이트합니다.
-    """
     logger.info(f"서비스: 사용자 강의 데이터 처리 시작 - User ID: {user_data.user_id}")
 
     results = []
@@ -52,7 +47,6 @@ def create_or_update_user_syllabuses(db: Session, user_data: UserDate) -> List[D
                 db.refresh(new_entry)
                 db_entry = new_entry
 
-            # 처리된 데이터 리스트에 추가
             results.append({
                 "id": db_entry.id,
                 "user_id": db_entry.user_id,
@@ -73,43 +67,3 @@ def create_or_update_user_syllabuses(db: Session, user_data: UserDate) -> List[D
             raise e
 
     return results
-
-'''
-def get_user_syllabuses(db: Session, user_id: str, year: str, semester: str) -> List[Dict[str, Any]]:
-    """
-    user_syllabus_data에서 사용자의 강의 정보를 찾고,
-    학년(year)와 학기(semester) 기준으로 syllabuses 테이블의 강의 계획서와 매칭합니다.
-    """
-    # 특정 학년/학기만 조회
-    user_courses = db.query(UserSyllabusData).filter(
-        UserSyllabusData.user_id == user_id,
-        UserSyllabusData.year == year,
-        UserSyllabusData.semester == semester
-    ).all()
-
-    if not user_courses:
-        return []
-
-    results = []
-
-    for course in user_courses:
-        matching_syllabus = db.query(Syllabus).filter(
-            Syllabus.class_code == course.class_code,
-            Syllabus.year == course.year,
-            Syllabus.semester == course.semester  # DB 컬럼이 semester로 되어 있어야 함
-        ).first()
-
-        if matching_syllabus:
-            results.append({
-                "user_id": course.user_id,
-                "class_code": course.class_code,
-                "year": course.year,
-                "semester": course.semester,
-                "professor_name": course.professor_name,
-                "syllabus_description": matching_syllabus.description,
-                "syllabus_objectives": matching_syllabus.objectives,
-                "syllabus_schedule": matching_syllabus.schedule
-            })
-
-    return results
-'''
