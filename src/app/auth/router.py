@@ -8,23 +8,17 @@ from src.app.auth.service import authenticate_and_create_session
 router = APIRouter()
 
 @router.post("/login")
-async def login(req:User):
-    session_id = await authenticate_and_create_session(req)
-    return {"status": 200,
-            "message": "로그인 성공.",
-            "session_id": session_id}
+def login(req: User):
+    session_id = authenticate_and_create_session(req)
+    return {"status": 200, "message": "로그인 성공.", "session_id": session_id}
 
 @router.post("/logout")
-async def logout(session_id: str | None = Header(default=None, convert_underscores=False)):
+def logout(session_id: str | None = Header(default=None, convert_underscores=False)):
     if session_id:
-        await delete_session(session_id)
-    return {"status": 200,
-            "message": "로그아웃 성공."}
+        delete_session(session_id)
+    return {"status": 200, "message": "로그아웃 성공."}
 
 @router.get("/me")
-async def me(session_id:str | None = Header(default=None, convert_underscores=False)):
-    await require_session(session_id)
-    return {
-        "status": 200,
-        "message": "인증 성공"
-    }
+def me(session_id: str | None = Header(default=None, convert_underscores=False)):
+    require_session(session_id)
+    return {"status": 200, "message": "인증 성공"}

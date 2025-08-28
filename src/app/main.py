@@ -1,16 +1,17 @@
 from fastapi import FastAPI
-from src.app.syllabus.router import router as login_router
+from src.app.auth.router import router as auth_router
+from src.app.syllabus.router import router as syllabus_router
 from src.app.classifier.router import router as classifier_router
 from src.app.user.router import router as user_router
 from src.app.config.database import engine, test_connection
 from src.app.model import Base  # models에서 Base import
-import logging
+#import logging
 
 app = FastAPI()
-logging.basicConfig(level=logging.INFO)
+#logging.basicConfig(level=logging.INFO)
 
-
-app.include_router(login_router, prefix="/api/login")
+app.include_router(auth_router)
+app.include_router(syllabus_router, prefix="/api/login")
 app.include_router(user_router, prefix="/api/user")
 app.include_router(classifier_router, prefix="/api/classifier")
 
@@ -18,7 +19,7 @@ app.include_router(classifier_router, prefix="/api/classifier")
 # 앱 시작시 연결 테스트
 @app.on_event("startup")
 async def startup_event():
-    logging.info("🚀 Starting Jamiron classifier server...")
+    #logging.info("🚀 Starting Jamiron classifier server...")
     if test_connection():
         # 테이블 생성
         Base.metadata.create_all(bind=engine)
