@@ -40,7 +40,7 @@ async def require_session(session_id: str | None = Header(default=None, convert_
         raise HTTPException(401, "Missing X-Session-Token")
     sess = await get_session(session_id)
     try:
-        return int(sess['username'])
+        return sess['username']
     except (KeyError, ValueError):
         await delete_session(session_id)
         raise HTTPException(401, "Invalid session payload")
