@@ -17,3 +17,4 @@ nltk==3.9.1
 redis==5.0.7
 pydantic_settings
 mysql-connector-python==9.4.0
+scipy==1.15.3
