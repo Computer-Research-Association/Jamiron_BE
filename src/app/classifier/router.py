@@ -19,7 +19,7 @@ class FileData(BaseModel):
 @router.post("/classify")
 async def classify_files(
     files: List[FileData],
-    user_id: str,
+    user_name: str,
     year: str,
     semester: str,
     db: Session = Depends(get_db),
@@ -27,11 +27,11 @@ async def classify_files(
 ):
 
     file_dicts = [file.dict() for file in files]
-    syllabuses = get_user_syllabuses(db, user_id, year, semester)
+    syllabuses = get_user_syllabuses(db, user_name, year, semester)
     if not syllabuses:
         raise HTTPException(
             status_code=404,
-            detail=f"User ID '{user_id}', Year '{year}', Semester '{semester}'에 대한 강의 계획서를 찾을 수 없습니다."
+            detail=f"User ID '{user_name}', Year '{year}', Semester '{semester}'에 대한 강의 계획서를 찾을 수 없습니다."
         )
 
     result = classify_with_rule_and_ml(

@@ -54,7 +54,7 @@ def transform_syllabus_to_classifier_format(syllabus_list: List[Dict[str, Any]])
                 "label": label,
                 "content": content
             })
-    return transformed_data
+    return
 
 
 class MLClassifier:

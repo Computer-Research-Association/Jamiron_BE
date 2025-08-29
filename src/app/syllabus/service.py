@@ -51,7 +51,7 @@ class SyllabusCollector:
             self._update_progress(f"WebDriver 초기화 실패: {e}", 0)
             raise
 
-    def login(self, user_id: str, password: str) -> bool:
+    def login(self, user_name: str, password: str) -> bool:
         self._initialize_webdriver()
         if not self.driver:
             self._update_progress("WebDriver가 초기화되지 않았습니다.", 0)
@@ -65,7 +65,7 @@ class SyllabusCollector:
                 By.CSS_SELECTOR,
                 "#loginBoxBg > table:nth-child(2) > tbody > tr > td:nth-child(5) > form > table > tbody > tr:nth-child(3) > td > table > tbody > tr > td:nth-child(1) > table > tbody > tr:nth-child(1) > td:nth-child(2) > span > input[type=text]",
             )
-            id_input.send_keys(user_id)
+            id_input.send_keys(user_name)
 
             password_input = self.driver.find_element(
                 By.CSS_SELECTOR,
