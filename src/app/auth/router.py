@@ -27,5 +27,5 @@ def logout(session_id: str | None = Header(default=None, convert_underscores=Fal
 @router.get("/session-check")
 async def session_check(username: str | None = Depends(optional_session)):
     if username:
-        return {"status": 200, "message": "이미 로그인됨"}
+        return {"status": 200, "message": "세션 있음"}
     return {"status": 204, "message": "세션 없음"}
