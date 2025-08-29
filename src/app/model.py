@@ -43,7 +43,7 @@ class UserSyllabusData(Base):
         ),
     )
 
-class user_name(Base):
+class UserName(Base):
     __tablename__ = "user_name"
     id = Column(Integer, primary_key=True, index=True)
     user_name = Column(String(50), nullable=False)
