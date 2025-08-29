@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 from src.app.auth.session_factory import generate_session_id, create_session
 from sqlalchemy.orm import Session
-from src.app.model import User_Id
+from src.app.model import UserName
 from src.app.syllabus.service import SyllabusCollector
 
 
@@ -15,17 +15,17 @@ def authenticate_and_create_session(
 
     save_user(req.username, db)
     session_id = generate_session_id()
-    create_session(session_id, user_id=req.username)
+    create_session(session_id, user_name=req.username)
 
     return session_id
 
 
 def save_user(username: str, db: Session):
-    existing_user = db.query(User_Id).filter(User_Id.user_id == username).first()
+    existing_user = db.query(UserName).filter(UserName.user_id == username).first()
     if existing_user:
         return existing_user
 
-    new_user = User_Id(user_id=username)
+    new_user = UserName(user_name=username)
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
