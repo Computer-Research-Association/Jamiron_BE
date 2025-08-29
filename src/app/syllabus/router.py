@@ -10,7 +10,7 @@ from src.app.auth.session_factory import require_session
 router = APIRouter()
 
 class LoginAndScrapeRequest(BaseModel):
-    user_name: str
+    username: str
     password: str
     year: str
     semester: str
@@ -24,7 +24,7 @@ async def login_and_scrape(
 ):
 
     try:
-        if not collector.login(credentials.user_name, credentials.password):
+        if not collector.login(credentials.username, credentials.password):
             raise HTTPException()
             #return {"status": 401, "message": "로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요."}
 

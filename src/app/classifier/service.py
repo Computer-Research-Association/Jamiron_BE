@@ -5,9 +5,9 @@ from src.app.classifier.methods.ml import MLClassifier
 from src.app.model import UserSyllabusData, Syllabus
 
 
-def get_user_syllabuses(db: Session, user_name: str, year: str, semester: str) -> List[Dict[str, Any]]:
+def get_user_syllabuses(db: Session, username: str, year: str, semester: str) -> List[Dict[str, Any]]:
     user_courses = db.query(UserSyllabusData).filter(
-        UserSyllabusData.user_name == user_name,
+        UserSyllabusData.username == username,
         UserSyllabusData.year == year,
         UserSyllabusData.semester == semester
     ).all()
@@ -25,7 +25,7 @@ def get_user_syllabuses(db: Session, user_name: str, year: str, semester: str) -
 
         if matching_syllabus:
             results.append({
-                "user_name": course.user_name,
+                "username": course.username,
                 "class_code": course.class_code,
                 "year": course.year,
                 "semester": course.semester,

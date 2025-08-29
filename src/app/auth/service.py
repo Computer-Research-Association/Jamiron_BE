@@ -5,7 +5,7 @@ from src.app.model import UserName
 from src.app.syllabus.service import SyllabusCollector
 
 
-def authenticate_and_create_session(
+def authenticate_and_create_session(    
         req,
         db: Session,
         collector: SyllabusCollector
@@ -15,17 +15,17 @@ def authenticate_and_create_session(
 
     save_user(req.username, db)
     session_id = generate_session_id()
-    create_session(session_id, user_name=req.username)
+    create_session(session_id, username=req.username)
 
     return session_id
 
 
 def save_user(username: str, db: Session):
-    existing_user = db.query(UserName).filter(UserName.user_id == username).first()
+    existing_user = db.query(UserName).filter(UserName.username == username).first()
     if existing_user:
         return existing_user
 
-    new_user = UserName(user_name=username)
+    new_user = UserName(username=username)
     db.add(new_user)
     db.commit()
     db.refresh(new_user)

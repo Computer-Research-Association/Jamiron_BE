@@ -11,10 +11,10 @@ class Settings(BaseSettings):
     session_prefix: str
 
     database_url: SecretStr
-    mysql_root_password: str
-    mysql_database: str
-    mysql_user: str
-    mysql_password: str
+    # mysql_root_password: str
+    # mysql_database: str
+    # mysql_user: str
+    # mysql_password: str
 
     class Config:
         env_file = ".env"
