@@ -44,3 +44,15 @@ async def require_session(session_id: str | None = Header(default=None, convert_
     except (KeyError, ValueError):
         await delete_session(session_id)
         raise HTTPException(401, "Invalid session payload")
+
+async def optional_session(
+    session_id: str | None = Header(default=None, convert_underscores=False)
+):
+    if not session_id:
+        return None  # 세션 없으면 그냥 None 반환
+    sess = await get_session(session_id)
+    try:
+        return sess['user_id']
+    except (KeyError, ValueError):
+        await delete_session(session_id)
+        return None
