@@ -4,6 +4,8 @@ from pydantic import SecretStr
 
 
 class Settings(BaseSettings):
+    model_config = {"extra": "ignore",
+                    "env_file": ".env" }
     redis_host: str
     redis_port: int
 
@@ -11,12 +13,6 @@ class Settings(BaseSettings):
     session_prefix: str
 
     database_url: SecretStr
-    # mysql_root_password: str
-    # mysql_database: str
-    # mysql_user: str
-    # mysql_password: str
 
-    class Config:
-        env_file = ".env"
 
 settings = Settings()

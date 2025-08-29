@@ -10,12 +10,12 @@ router = APIRouter()
 
 
 @router.post("/login")
-def login(
+async def login(
     req: User,
     collector: SyllabusCollector = Depends(get_syllabus_collector),
     db: Session = Depends(get_db)
 ):
-    session_id = authenticate_and_create_session(req, db, collector)
+    session_id = await authenticate_and_create_session(req, db, collector)
     return {"status": 200, "message": "로그인 성공.", "session_id": session_id}
 
 @router.post("/logout")

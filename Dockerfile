@@ -20,14 +20,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgl1 \
     libglib2.0-0 \
     fonts-nanum fonts-liberation \
-    unzip curl \
-    chromium \
-    chromium-driver \
+    unzip curl wget \
  && rm -rf /var/lib/apt/lists/*
 
-
-ENV TZ=Asia/Seoul
-
+# Google Chrome 설치
+RUN wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
+    && apt-get update \
+    && apt-get install -y ./google-chrome-stable_current_amd64.deb || true \
+    && apt-get install -fy \
+    && rm google-chrome-stable_current_amd64.deb
 
 # 타임존 - 시간대를 한국시간대로 설정
 ENV TZ=Asia/Seoul
