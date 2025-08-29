@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 class UserDate(BaseModel):
-    user_id: str
+    user_name: str
     syllabuses: Dict[str, str]  # key=class_code, value=class_division
     year: str
     semester: str
@@ -24,7 +24,7 @@ async def create_or_update_user_syllabus_data(
         session_id: str = Depends(require_session)
 ):
     logger.info(
-        f"사용자 강의 데이터 요청: User ID: {user_data.user_id}, Year: {user_data.year}, Semester: {user_data.semester}"
+        f"사용자 강의 데이터 요청: User ID: {user_data.user_name}, Year: {user_data.year}, Semester: {user_data.semester}"
     )
 
     try:

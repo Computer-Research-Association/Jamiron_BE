@@ -23,19 +23,10 @@ async def startup_event():
     if test_connection():
         # 테이블 생성
         Base.metadata.create_all(bind=engine)
-        print("✅ Database tables created successfully!")
+        print("Database tables created successfully!")
     else:
-        print("❌ Failed to connect to database")
+        print("Failed to connect to database")
 
 @app.get("/")
 def root():
     return {"message": "Jamiron classifier server running 🚀"}
-
-# 연결 테스트를 위한 엔드포인트
-@app.get("/health/db")
-def database_health():
-    '''testtest'''
-    if test_connection():
-        return {"status": "healthy", "database": "connected"}
-    else:
-        return {"status": "unhealthy", "database": "disconnected"}
