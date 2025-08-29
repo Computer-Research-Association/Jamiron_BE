@@ -1,3 +1,4 @@
+from http.client import HTTPException
 from fastapi import APIRouter, Depends, logger
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -24,10 +25,12 @@ async def login_and_scrape(
 
     try:
         if not collector.login(credentials.user_id, credentials.password):
-            return {"status": 401, "message": "로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요."}
+            raise HTTPException()
+            #return {"status": 401, "message": "로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요."}
 
         if not collector.navigate_to_planner_page(credentials.year, credentials.semester):
-            return {"status": 404, "message": f"지정된 학년/학기({credentials.year}-{credentials.semester})에 대한 강의 계획서 페이지를 찾을 수 없습니다."}
+            raise HTTPException()
+            #return {"status": 404, "message": f"지정된 학년/학기({credentials.year}-{credentials.semester})에 대한 강의 계획서 페이지를 찾을 수 없습니다."}
 
         collector.download_planners()
         collected_syllabuses_details = collector.get_collected_syllabuses()
