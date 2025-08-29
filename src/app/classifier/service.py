@@ -49,7 +49,6 @@ def classify_with_rule_and_ml(file_data_list, db=None, syllabus_list=None):
     for file_data in file_data_list:
         if file_data['label'] == UNKNOWN:
             file_data['label'] = rule_classifier.classify(file_data)
-
     ml_classifier = MLClassifier(syllabus_list)
     for file_data in file_data_list:
         if file_data['label'] == UNKNOWN:

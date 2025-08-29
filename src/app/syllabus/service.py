@@ -156,133 +156,6 @@ class SyllabusCollector:
                 self.driver = None
             return False
 
-    def download_planners(self):
-        self.collected_syllabuses = []
-        if not self.driver:
-            self._update_progress("WebDriver가 초기화되지 않았습니다.", 0)
-            return
-
-        classes_list = self._get_class_list()
-        total_classes = len(classes_list)
-
-        if total_classes == 0:
-            self._update_progress("해당 학기 강의가 없습니다.", 100)
-            return
-
-        self._update_progress("데이터베이스 연결 확인 중...", 5)
-
-        if not self.test_database_connection():
-            self._update_progress("데이터베이스 연결 실패! 설정을 확인하세요.", 0)
-            return
-
-        self.collected_class_codes = []
-
-        for idx, class_info in enumerate(classes_list, 1):
-            url = class_info["href"]
-            title = class_info["title"]
-
-            print(f"처리 중인 URL: {url}")
-            temp = url[-16:]
-            syllabus_detail_url = f"{self.base_url}SMART/lp_view_4student_1.php?kang_yy={temp[:4]}&kang_hakgi={temp[5]}&kang_code={temp[-8:]}&kang_ban={temp[6:8]}"
-
-            try:
-                data = self._parse_syllabus_page(
-                    syllabus_detail_url,
-                    title,
-                    self.current_user_year,
-                    self.current_user_semester,
-                )
-
-                if data:
-                    try:
-                        from src.app.utils.file_process.preprocessor import (
-                            process_and_save_syllabus,
-                        )
-
-                        processed_data = process_and_save_syllabus(
-                            data, self.current_user_year, self.current_user_semester, title
-                        )
-
-                        if processed_data:
-                            processed_success = self._save_syllabus_to_db(processed_data)
-                            syllabus_info = {
-                                "class_code": data.get('class_code'),
-                                "class_division": str(int(temp[-2:])),
-                                "class_name": data.get('class_name'),
-                                "professor_name": data.get('professor_name')
-                            }
-                            if processed_success:
-                                self.collected_syllabuses.append(syllabus_info)
-
-                    except Exception as preprocessor_error:
-                        print(f"전처리 과정에서 오류 발생 (원본은 저장됨): {preprocessor_error}")
-
-                progress_percent = 5 + int((idx / total_classes) * 90)
-                self._update_progress(
-                    f"[{idx}/{total_classes}] {title} 처리 완료",
-                    progress_percent,
-                )
-            except Exception as e:
-                progress_percent = 5 + int((idx / total_classes) * 90)
-                self._update_progress(
-                    f"[{idx}/{total_classes}] {title} 처리 중 오류 발생: {str(e)[:50]}...",
-                    progress_percent,
-                )
-                print(f"ERROR: Exception during processing {title}: {e}")
-                continue
-
-        self._update_progress(
-            f"크롤링 완료! 총 {self.saved_syllabuses_count}개 강의 계획서가 데이터베이스에 저장되었습니다.",
-            100
-        )
-
-    def get_collected_syllabuses(self) -> list:
-        return self.collected_syllabuses
-
-    def _save_syllabus_to_db(self, syllabus_data: dict) -> bool:
-        db = SessionLocal()
-        try:
-            existing_syllabus = db.query(Syllabus).filter(
-                Syllabus.class_code == syllabus_data.get('class_code'),
-                Syllabus.class_division == syllabus_data.get('class_division'),
-                Syllabus.year == syllabus_data.get('year'),
-                Syllabus.semester == syllabus_data.get('semester')
-            ).first()
-
-            if existing_syllabus:
-                existing_syllabus.class_name = syllabus_data.get('class_name', '')
-                existing_syllabus.professor_name = syllabus_data.get('professor_name', '')
-                existing_syllabus.class_division = syllabus_data.get('class_division', '')
-                existing_syllabus.prof_email = syllabus_data.get('prof_email', '')
-                existing_syllabus.objectives = syllabus_data.get('objectives', '')
-                existing_syllabus.description = syllabus_data.get('description', '')
-                existing_syllabus.schedule = syllabus_data.get('schedule', '')
-                print(f"기존 강의 계획서 업데이트: {syllabus_data.get('class_name')}")
-            else:
-                new_syllabus = Syllabus(
-                    class_name=syllabus_data.get('class_name', ''),
-                    class_code=syllabus_data.get('class_code', ''),
-                    class_division=syllabus_data.get('class_division', ''),
-                    professor_name=syllabus_data.get('professor_name', ''),
-                    prof_email=syllabus_data.get('prof_email', ''),
-                    year=syllabus_data.get('year', ''),
-                    semester=syllabus_data.get('semester', ''),
-                    objectives=syllabus_data.get('objectives', ''),
-                    description=syllabus_data.get('description', ''),
-                    schedule=syllabus_data.get('schedule', '')
-                )
-                db.add(new_syllabus)
-            db.commit()
-            return True
-
-        except Exception as e:
-            db.rollback()
-            print(f"데이터베이스 저장 오류: {e}")
-            print(f"실패한 데이터: {syllabus_data}")
-            return False
-        finally:
-            db.close()
-
     def _get_class_list(self) -> list:
         classes_list = []
         try:
@@ -378,7 +251,6 @@ class SyllabusCollector:
         match = re.search(r"kang_code=([^&]+)", url)
         kang_code = match.group(1)
         temp = url[-16:]
-        print(temp[-2:])
 
         return {
             "class_name": class_title,
@@ -392,6 +264,153 @@ class SyllabusCollector:
             "description": description_text.strip(),
             "schedule": schedule_text.strip(),
         }
+
+    def _save_syllabus_to_db(self, syllabus_data: dict) -> bool:
+        db = SessionLocal()
+        try:
+            existing_syllabus = db.query(Syllabus).filter(
+                Syllabus.class_code == syllabus_data.get('class_code'),
+                Syllabus.class_division == syllabus_data.get('class_division'),
+                Syllabus.year == syllabus_data.get('year'),
+                Syllabus.semester == syllabus_data.get('semester')
+            ).first()
+
+            if existing_syllabus:
+                existing_syllabus.class_name = syllabus_data.get('class_name', '')
+                existing_syllabus.professor_name = syllabus_data.get('professor_name', '')
+                existing_syllabus.class_division = syllabus_data.get('class_division', '')
+                existing_syllabus.prof_email = syllabus_data.get('prof_email', '')
+                existing_syllabus.objectives = syllabus_data.get('objectives', '')
+                existing_syllabus.description = syllabus_data.get('description', '')
+                existing_syllabus.schedule = syllabus_data.get('schedule', '')
+                print(f"기존 강의 계획서 업데이트: {syllabus_data.get('class_name')}")
+            else:
+                new_syllabus = Syllabus(
+                    class_name=syllabus_data.get('class_name', ''),
+                    class_code=syllabus_data.get('class_code', ''),
+                    class_division=syllabus_data.get('class_division', ''),
+                    professor_name=syllabus_data.get('professor_name', ''),
+                    prof_email=syllabus_data.get('prof_email', ''),
+                    year=syllabus_data.get('year', ''),
+                    semester=syllabus_data.get('semester', ''),
+                    objectives=syllabus_data.get('objectives', ''),
+                    description=syllabus_data.get('description', ''),
+                    schedule=syllabus_data.get('schedule', '')
+                )
+                db.add(new_syllabus)
+            db.commit()
+            return True
+
+        except Exception as e:
+            db.rollback()
+            print(f"데이터베이스 저장 오류: {e}")
+            print(f"실패한 데이터: {syllabus_data}")
+            return False
+        finally:
+            db.close()
+
+    def download_planners(self):
+        self.collected_syllabuses = []
+        if not self.driver:
+            self._update_progress("WebDriver가 초기화되지 않았습니다.", 0)
+            return
+
+        classes_list = self._get_class_list()
+        total_classes = len(classes_list)
+
+        if total_classes == 0:
+            self._update_progress("해당 학기 강의가 없습니다.", 100)
+            return
+
+        self._update_progress("데이터베이스 연결 확인 중...", 5)
+
+        if not self.test_database_connection():
+            self._update_progress("데이터베이스 연결 실패! 설정을 확인하세요.", 0)
+            return
+
+        self.collected_class_codes = []
+
+        for idx, class_info in enumerate(classes_list, 1):
+            url = class_info["href"]
+            title = class_info["title"]
+
+            print(f"처리 중인 URL: {url}")
+            temp = url[-16:]
+            syllabus_detail_url = f"{self.base_url}SMART/lp_view_4student_1.php?kang_yy={temp[:4]}&kang_hakgi={temp[5]}&kang_code={temp[-8:]}&kang_ban={temp[6:8]}"
+
+            db = SessionLocal()
+            existing = db.query(Syllabus).filter(
+                Syllabus.class_code == temp[-8:],
+                Syllabus.class_division == temp[6:8],
+                Syllabus.year == temp[:4],
+                Syllabus.semester == temp[5]
+            ).first()
+            db.close()
+
+            if existing:
+                print(f"이미 존재하는 강의 계획서, 스킵: {title}")
+                progress_percent = 5 + int((idx / total_classes) * 90)
+                self._update_progress(
+                    f"[{idx}/{total_classes}] {title} (이미 저장됨, 스킵)",
+                    progress_percent,
+                )
+                continue  # 이후 작업 모두 건너뜀
+
+
+            try:
+                data = self._parse_syllabus_page(
+                    syllabus_detail_url,
+                    title,
+                    self.current_user_year,
+                    self.current_user_semester,
+                )
+
+                if data:
+                    try:
+                        from src.app.utils.file_process.preprocessor import (
+                            process_and_save_syllabus,
+                        )
+
+                        processed_data = process_and_save_syllabus(
+                            data, self.current_user_year, self.current_user_semester, title
+                        )
+
+                        if processed_data:
+                            processed_success = self._save_syllabus_to_db(processed_data)
+                            syllabus_info = {
+                                "class_code": data.get('class_code'),
+                                "class_division": str(int(temp[6:8])),
+                                "class_name": data.get('class_name'),
+                                "professor_name": data.get('professor_name')
+                            }
+                            if processed_success:
+                                self.collected_syllabuses.append(syllabus_info)
+
+                    except Exception as preprocessor_error:
+                        print(f"전처리 과정에서 오류 발생 (원본은 저장됨): {preprocessor_error}")
+
+                progress_percent = 5 + int((idx / total_classes) * 90)
+                self._update_progress(
+                    f"[{idx}/{total_classes}] {title} 처리 완료",
+                    progress_percent,
+                )
+            except Exception as e:
+                progress_percent = 5 + int((idx / total_classes) * 90)
+                self._update_progress(
+                    f"[{idx}/{total_classes}] {title} 처리 중 오류 발생: {str(e)[:50]}...",
+                    progress_percent,
+                )
+                print(f"ERROR: Exception during processing {title}: {e}")
+                continue
+
+        self._update_progress(
+            f"크롤링 완료! 총 {self.saved_syllabuses_count}개 강의 계획서가 데이터베이스에 저장되었습니다.",
+            100
+        )
+
+    def get_collected_syllabuses(self) -> list:
+        return self.collected_syllabuses
+
 
     def get_saved_syllabuses_count(self) -> int:
         return self.saved_syllabuses_count
@@ -424,9 +443,9 @@ class SyllabusCollector:
                     "description": syllabus.description,
                     "schedule": syllabus.schedule,
                 })
-            
+
             return result
-            
+
         except Exception as e:
             print(f"데이터베이스 조회 오류: {e}")
             return []
@@ -447,9 +466,6 @@ class SyllabusCollector:
         if self.driver:
             self.driver.quit()
             self.driver = None
-
-
-
 
 syllabusCollector = SyllabusCollector()
 def get_syllabus_collector():
