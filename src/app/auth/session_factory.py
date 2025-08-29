@@ -35,7 +35,7 @@ async def get_session(session_id: str) -> Dict[str, str]:
 async def delete_session(session_id: str):
     await redis.delete(key_session(session_id))
 
-async def require_session(session_id: str | None = Header(default=None, convert_underscores=False)) -> int:
+async def require_session(session_id: str | None = Header(default=None, convert_underscores=False)):
     if not session_id:
         raise HTTPException(401, "Missing X-Session-Token")
     sess = await get_session(session_id)

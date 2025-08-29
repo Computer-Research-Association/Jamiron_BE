@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from typing import List, Dict, Any
 from src.app.config.database import get_db
 from src.app.user import service as user_service  # user_service로 별칭 지정
+from src.app.auth.session_factory import require_session
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -19,7 +20,8 @@ class UserDate(BaseModel):
 @router.post("/")
 async def create_or_update_user_syllabus_data(
         user_data: UserDate,
-        db: Session = Depends(get_db)
+        db: Session = Depends(get_db),
+        session_id: str = Depends(require_session)
 ):
     logger.info(
         f"사용자 강의 데이터 요청: User ID: {user_data.user_id}, Year: {user_data.year}, Semester: {user_data.semester}"

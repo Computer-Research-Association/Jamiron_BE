@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from src.app.config.database import get_db
 from src.app.syllabus.service import get_syllabus_collector, SyllabusCollector
+from src.app.auth.session_factory import require_session
 
 
 router = APIRouter()
@@ -16,8 +17,9 @@ class LoginAndScrapeRequest(BaseModel):
 @router.post("/")
 async def login_and_scrape(
     credentials: LoginAndScrapeRequest,
-    db: Session = Depends(get_db), # 데이터베이스 세션을 주입
-    collector: SyllabusCollector = Depends(get_syllabus_collector)
+    collector: SyllabusCollector = Depends(get_syllabus_collector),
+    db: Session = Depends(get_db),
+    session_id: str = Depends(require_session)
 ):
 
     try:
