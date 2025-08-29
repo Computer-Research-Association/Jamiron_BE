@@ -17,11 +17,12 @@ RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     default-libmysqlclient-dev \
-    libpq-dev \
     libgl1 \
     libglib2.0-0 \
     fonts-nanum fonts-liberation \
     unzip curl \
+    chromium \
+    chromium-driver \
  && rm -rf /var/lib/apt/lists/*
 
 
