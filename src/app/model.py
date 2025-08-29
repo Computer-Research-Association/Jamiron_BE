@@ -26,7 +26,7 @@ class UserSyllabusData(Base):
     __tablename__ = "user_syllabus_data"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_name = Column(String(50), nullable=False)
+    username = Column(String(50), nullable=False)
     class_code = Column(String(50), nullable=False)         # 길이를 Syllabus와 맞춤
     class_division = Column(String(10), nullable=False)
     year = Column(String(10), nullable=False)
@@ -34,7 +34,7 @@ class UserSyllabusData(Base):
 
     __table_args__ = (
         UniqueConstraint(
-            'user_name',
+            'username',
             'year',
             'semester',
             'class_code',
@@ -44,6 +44,6 @@ class UserSyllabusData(Base):
     )
 
 class UserName(Base):
-    __tablename__ = "user_name"
+    __tablename__ = "username"
     id = Column(Integer, primary_key=True, index=True)
-    user_name = Column(String(50), nullable=False)
+    username = Column(String(50), nullable=False)

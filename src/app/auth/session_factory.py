@@ -21,9 +21,9 @@ def generate_session_id() -> str: return uuid.uuid4().hex
 def key_session(session_id:str) -> str:
     return f"{settings.session_prefix}:{session_id}"
 
-async def create_session(session_id: str, user_name: int):
+async def create_session(session_id: str, username: int):
     key = key_session(session_id)
-    await redis.hset(key, mapping={"user_name": str(user_name), "issued_at": str(now())})
+    await redis.hset(key, mapping={"username": str(username), "issued_at": str(now())})
     await redis.expire(key, SESSION_TTL)
 
 async def get_session(session_id: str) -> Dict[str, str]:
@@ -40,7 +40,7 @@ async def require_session(session_id: str | None = Header(default=None, convert_
         raise HTTPException(401, "Missing X-Session-Token")
     sess = await get_session(session_id)
     try:
-        return int(sess['user_name'])
+        return int(sess['username'])
     except (KeyError, ValueError):
         await delete_session(session_id)
         raise HTTPException(401, "Invalid session payload")
@@ -52,7 +52,7 @@ async def optional_session(
         return None  # 세션 없으면 그냥 None 반환
     sess = await get_session(session_id)
     try:
-        return sess['user_name']
+        return sess['username']
     except (KeyError, ValueError):
         await delete_session(session_id)
         return None
