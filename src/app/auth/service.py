@@ -5,7 +5,7 @@ from src.app.model import UserName
 from src.app.syllabus.service import SyllabusCollector
 
 
-def authenticate_and_create_session(    
+async def authenticate_and_create_session(
         req,
         db: Session,
         collector: SyllabusCollector
@@ -15,7 +15,7 @@ def authenticate_and_create_session(
 
     save_user(req.username, db)
     session_id = generate_session_id()
-    create_session(session_id, username=req.username)
+    await create_session(session_id, username=req.username)
 
     return session_id
 
