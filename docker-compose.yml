@@ -1,6 +1,8 @@
 services:
   app:
-    image: fantastic0914/jamiron:beta
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: app
     ports:
       - "8000:8000"
