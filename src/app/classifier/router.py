@@ -2,9 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from src.app.classifier.service import get_user_syllabuses
 from src.app.classifier.service import classify_with_rule_and_ml  # service 함수 임포트
+from src.app.auth.session_factory import require_session
 from src.app.config.database import get_db
 from sqlalchemy.orm import Session
 from typing import List, Dict, Any,Optional
+
 
 router = APIRouter()
 
@@ -20,7 +22,8 @@ async def classify_files(
     user_id: str,
     year: str,
     semester: str,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    session__id: str = Depends(require_session)
 ):
 
     file_dicts = [file.dict() for file in files]
