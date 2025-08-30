@@ -7,7 +7,10 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from typing import List, Dict, Any
 from src.app.utils.file_process.preprocessor import Preprocessor
 from src.app.utils.file_process.translator import TextTranslator
+import nltk
 
+nltk.download('punkt')
+nltk.download('punkt_tab')
 
 def extract_key_sentences_tfidf(text: str, top_k: int = 10) -> List[str]:
     sentences = sent_tokenize(text)
