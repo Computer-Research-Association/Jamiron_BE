@@ -12,7 +12,6 @@ class UserDate(BaseModel):
     syllabuses: Dict[str, str]
     year: str
     semester: str
-
 def create_or_update_user_syllabuses(db: Session, user_data: UserDate) -> List[Dict[str, Any]]:
     logger.info(f"서비스: 사용자 강의 데이터 처리 시작 - User ID: {user_data.username}")
 
