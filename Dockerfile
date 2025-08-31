@@ -30,5 +30,7 @@ RUN wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd6
     && apt-get install -fy \
     && rm google-chrome-stable_current_amd64.deb
 
+RUN python -m nltk.downloader punkt punkt_tab
+
 # 타임존 - 시간대를 한국시간대로 설정
 ENV TZ=Asia/Seoul
