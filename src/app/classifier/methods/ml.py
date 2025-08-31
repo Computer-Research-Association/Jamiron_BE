@@ -7,10 +7,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from typing import List, Dict, Any
 from src.app.utils.file_process.preprocessor import Preprocessor
 from src.app.utils.file_process.translator import TextTranslator
-import nltk
 
-nltk.download('punkt')
-nltk.download('punkt_tab')
 
 def extract_key_sentences_tfidf(text: str, top_k: int = 10) -> List[str]:
     sentences = sent_tokenize(text)
@@ -50,14 +47,13 @@ def transform_syllabus_to_classifier_format(syllabus_list: List[Dict[str, Any]])
         ]
         content = " ".join([part for part in content_parts if part])
         #content = preprocessor.preprocess_text(content)
-        print("실라버스",content)
 
         if content:
             transformed_data.append({
                 "label": label,
                 "content": content
             })
-    return
+    return transformed_data
 
 
 class MLClassifier:

@@ -65,5 +65,3 @@ def classify_with_rule_and_ml(file_data_list, db=None, syllabus_list=None):
     ]
 
     return results
-
-if __main__.__name__ == "__main__":
